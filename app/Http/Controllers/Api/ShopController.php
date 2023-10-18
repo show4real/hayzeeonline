@@ -31,7 +31,7 @@ class ShopController extends Controller
             ->processor($request->processors)
             ->ram($request->rams)
             ->sort($request->sort)
-            ->filterByPrice($request->price[0], $request->price[1])
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
             //->orderBy('updated_at', 'desc')
             ->inRandomOrder()
