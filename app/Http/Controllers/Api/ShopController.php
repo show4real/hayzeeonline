@@ -23,8 +23,8 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        $products = Product::search($request->search,$request->price[0], $request->price[1])
-            ->searchAll($request->search_all)
+        $products = Product::search($request->search,)
+            ->searchAll($request->search_all,$request->price[0], $request->price[1])
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
