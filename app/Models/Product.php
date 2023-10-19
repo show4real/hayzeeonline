@@ -37,7 +37,6 @@ class Product extends Model
 //     public function scopeSearchAll($query, $filter)
 // {
 //     $searchQuery = trim($filter);
-    
 
 //     $query->when($filter != '', function ($query) use ($searchQuery) {
 //         return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
@@ -45,19 +44,6 @@ class Product extends Model
 //             ->orderByDesc('relevance_score');
 //     });
 // }
-public function scopeSearchAll($query, $filter, $minPrice, $maxPrice)
-{
-    $searchQuery = trim($filter);
-
-    return $query->when($filter != '', function ($query) use ($searchQuery) {
-        return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
-            ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
-            ->orderByDesc('relevance_score');
-    })
-    ->when(($minPrice && $maxPrice), function ($query) use ($minPrice, $maxPrice) {
-        return $query->whereBetween('price', [$minPrice, $maxPrice]);
-    });
-}
 
 
 
@@ -192,10 +178,22 @@ public function scopeSearchAll($query, $filter, $minPrice, $maxPrice)
     }
 
     public function scopeFilterByPrice($query, $minPrice, $maxPrice)
-    {
-        
-       
-
-         return $query->whereBetween('price', [$minPrice, $maxPrice]);
+{
+    if ($minPrice && $maxPrice) {
+        return $query->whereBetween('price', [$minPrice, $maxPrice]);
     }
+    return $query;
+}
+
+public function scopeSearchAll($query, $filter)
+{
+    if ($filter) {
+        $searchQuery = trim($filter);
+        return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
+            ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
+            ->orderByDesc('relevance_score');
+    }
+    return $query;
+}
+
 }
