@@ -24,14 +24,14 @@ class ShopController extends Controller
     {
 
         $products = Product::search($request->search,)
-            ->searchAll($request->search_all,$request->price[0], $request->price[1])
+            ->searchAll($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
             ->sort($request->sort)
-            //->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+            ->filterByPrice($request->price[0], $request->price[1])
             ->orderByRaw("availability = 1 DESC")
             //->orderBy('updated_at', 'desc')
             ->inRandomOrder()
