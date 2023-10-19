@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\ProductImages;
 use App\Models\ProductDescription;
 use App\Models\Category;
+use DB;
 
 class Product extends Model
 {
