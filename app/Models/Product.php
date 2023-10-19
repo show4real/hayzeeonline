@@ -34,16 +34,16 @@ class Product extends Model
     // ALTER TABLE products ADD FULLTEXT INDEX fulltext_index_name (name, description);
 
 
-//     public function scopeSearchAll($query, $filter)
-// {
-//     $searchQuery = trim($filter);
+    public function scopeSearchAll($query, $filter)
+{
+    $searchQuery = trim($filter);
 
-//     $query->when($filter != '', function ($query) use ($searchQuery) {
-//         return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
-//             ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
-//             ->orderByDesc('relevance_score');
-//     });
-// }
+    $query->when($filter != '', function ($query) use ($searchQuery) {
+        return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
+            ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
+            ->orderByDesc('relevance_score');
+    });
+}
 
 
 
@@ -177,23 +177,12 @@ class Product extends Model
         return null; // Or you can set a default image URL or take other appropriate action
     }
 
-    public function scopeFilterByPrice($query, $minPrice, $maxPrice)
-{
-    if ($minPrice && $maxPrice) {
-        return $query->whereBetween('price', [$minPrice, $maxPrice]);
+    public function scopeFilterByPrice($query, $minPrice, $maxPrice, $searchAll)
+    {
+        
+        if ($minPrice && $maxPrice && !$searchAll) {
+            return $query->whereBetween('price', [$minPrice, $maxPrice]);
+        }
+        return $query;
     }
-    return $query;
-}
-
-public function scopeSearchAll($query, $filter)
-{
-    if ($filter) {
-        $searchQuery = trim($filter);
-        return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
-            ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
-            ->orderByDesc('relevance_score');
-    }
-    return $query;
-}
-
 }
