@@ -55,9 +55,13 @@ class ShopController extends Controller
         if ($request->has('search_all')) {
              $products->searchAll($request->search_all);
         }
+
+        if($request->has('rows')){
+            $products->paginate($request->rows, ['*'], 'page', $request->page);
+        }
         
 
-         $products->paginate($request->rows, ['*'], 'page', $request->page);
+         //$products->paginate($request->rows, ['*'], 'page', $request->page);
 
         // $products = Product::brand($request->brand)
         //     ->category($request->category)
