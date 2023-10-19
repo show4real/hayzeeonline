@@ -23,8 +23,7 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        $products = Product::search($request->search_all)
-            ->brand($request->brand)
+        $products = Product::brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
@@ -32,7 +31,8 @@ class ShopController extends Controller
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
-            // ->inRandomOrder()
+            ->inRandomOrder()
+            ->searchAll($request->search_all)
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
         $youtube = Youtube::first()->youtubeid;
