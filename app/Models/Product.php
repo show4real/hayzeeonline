@@ -38,11 +38,13 @@ class Product extends Model
 {
     $searchQuery = trim($filter);
 
-    $query->when($filter != '', function ($query) use ($searchQuery) {
-        return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
-            ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
-            ->orderByDesc('relevance_score');
-    });
+     return $query->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery]);
+
+    // $query->when($filter != '', function ($query) use ($searchQuery) {
+    //     return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
+    //         ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
+    //         ->orderByDesc('relevance_score');
+    // });
 }
 
 
