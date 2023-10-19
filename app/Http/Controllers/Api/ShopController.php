@@ -23,7 +23,7 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        $products = Product::searchAll($request->search_all)
+        $products = Product::search($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
