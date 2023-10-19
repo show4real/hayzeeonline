@@ -37,14 +37,13 @@ class Product extends Model
     public function scopeSearchAll($query, $filter)
 {
     $searchQuery = trim($filter);
+    
 
-     return $query->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery]);
-
-    // $query->when($filter != '', function ($query) use ($searchQuery) {
-    //     return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
-    //         ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
-    //         ->orderByDesc('relevance_score');
-    // });
+    $query->when($filter != '', function ($query) use ($searchQuery) {
+        return $query->selectRaw("*, MATCH(name, description) AGAINST(?) as relevance_score")
+            ->whereRaw("MATCH(name, description) AGAINST(? IN BOOLEAN MODE)", [$searchQuery, $searchQuery])
+            ->orderByDesc('relevance_score');
+    });
 }
 
 
