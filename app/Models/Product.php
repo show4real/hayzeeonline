@@ -181,7 +181,7 @@ class Product extends Model
     public function scopeFilterByPrice($query, $minPrice, $maxPrice, $searchAll)
     {
         
-        if ($minPrice && $maxPrice && !$searchAll) {
+        if ($minPrice && $maxPrice) {
             return $query->whereBetween('price', [$minPrice, $maxPrice]);
         }
         return $query;
