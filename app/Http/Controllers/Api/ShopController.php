@@ -23,7 +23,7 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        $products = Product::newQuery();
+        $product = (new Product)->newQuery();
 
     if ($request->has('category')) {
         $products->category($request->category);
