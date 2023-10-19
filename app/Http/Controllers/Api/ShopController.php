@@ -22,18 +22,21 @@ class ShopController extends Controller
 
     public function products(Request $request)
     {
-
-        $products = Product::brand($request->brand)
-            ->category($request->category)
+        $query = (new Product)->newQuery();
+        if($request->search_all){
+            $query->searchAll($request->search_all);
+        } 
+         $query->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
-            ->inRandomOrder()
-            ->searchAll($request->search_all)
-            ->paginate($request->rows, ['*'], 'page', $request->page);
+            ->inRandomOrder();
+
+        $products = $query->paginate($request->rows, ['*'], 'page', $request->page);
+           
 
         $youtube = Youtube::first()->youtubeid;
 
