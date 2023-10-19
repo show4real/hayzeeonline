@@ -50,7 +50,7 @@ class ShopController extends Controller
     }
 
     if ($request->price[0]) {
-        $query->filterByPrice($request->price[0], $request->price[1]);
+        $query->filterByPrice($request->price[0], $request->price[1], $request->search_all);
     }
 
     if ($request->has('search_all')) {

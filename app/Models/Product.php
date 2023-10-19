@@ -177,10 +177,10 @@ class Product extends Model
         return null; // Or you can set a default image URL or take other appropriate action
     }
 
-    public function scopeFilterByPrice($query, $minPrice, $maxPrice)
+    public function scopeFilterByPrice($query, $minPrice, $maxPrice, $searchAll)
     {
         
-        if ($minPrice && $maxPrice) {
+        if ($minPrice && $maxPrice && !$searchAll) {
             return $query->whereBetween('price', [$minPrice, $maxPrice]);
         }
         return $query;
