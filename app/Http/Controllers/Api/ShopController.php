@@ -29,21 +29,19 @@ class ShopController extends Controller
         $query->category($request->category);
     }
 
-    if ($request->has('storages')) {
-        $query->storage($request->storages);
-    }
+    // if ($request->has('storages')) {
+    //     $query->storage($request->storages);
+    // }
 
-    if ($request->has('processors')) {
-        $query->processor($request->processors);
-    }
+    // if ($request->has('processors')) {
+    //     $query->processor($request->processors);
+    // }
 
-    if ($request->has('rams')) {
-        $query->ram($request->rams);
-    }
+    // if ($request->has('rams')) {
+    //     $query->ram($request->rams);
+    // }
 
-    if ($request->has('storages')) {
-        $query->storage($request->storages);
-    }
+   
 
     if ($request->has('sort')) {
         $query->sort($request->sort);
@@ -61,9 +59,11 @@ class ShopController extends Controller
     $rows = $request->has('rows') ? $request->rows : 10; // Assuming 10 rows by default
     $page = $request->has('page') ? $request->page : 1; // Assuming first page by default
 
-    $products = $query->paginate($rows, ['*'], 'page', $page);
+    $products = $query->storage($request->storages)
+            ->processor($request->processors)
+            ->ram($request->rams)->paginate($rows, ['*'], 'page', $page);
 
-   
+  
          //$products->paginate($request->rows, ['*'], 'page', $request->page);
 
         // $products = Product::brand($request->brand)
