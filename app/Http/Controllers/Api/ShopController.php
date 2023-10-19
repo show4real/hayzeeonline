@@ -23,47 +23,47 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        $products = (new Product)->newQuery();
+        $query = (new Product)->newQuery();
 
     if ($request->has('category')) {
-        $products->category($request->category);
+        $query->category($request->category);
     }
 
     if ($request->has('storages')) {
-        $products->storage($request->storages);
+        $query->storage($request->storages);
     }
 
     if ($request->has('processors')) {
-        $products->processor($request->processors);
+        $query->processor($request->processors);
     }
 
     if ($request->has('rams')) {
-        $products->ram($request->rams);
+        $query->ram($request->rams);
     }
 
     if ($request->has('storages')) {
-        $products->storage($request->storages);
+        $query->storage($request->storages);
     }
 
     if ($request->has('sort')) {
-        $products->sort($request->sort);
+        $query->sort($request->sort);
     }
 
-    if ($request->has('price')) {
-        $products->filterByPrice($request->price[0], $request->price[1], $request->search_all);
+    if ($request->price[0]) {
+        $query->filterByPrice($request->price[0], $request->price[1]);
     }
 
     if ($request->has('search_all')) {
-        $products->searchAll($request->search_all);
+        $query->searchAll($request->search_all);
     }
 
     // Add the pagination condition
     $rows = $request->has('rows') ? $request->rows : 10; // Assuming 10 rows by default
     $page = $request->has('page') ? $request->page : 1; // Assuming first page by default
 
-    $paginatedResults = $products->paginate($rows, ['*'], 'page', $page);
+    $products = $query->paginate($rows, ['*'], 'page', $page);
 
-    return $paginatedResults;
+   
          //$products->paginate($request->rows, ['*'], 'page', $request->page);
 
         // $products = Product::brand($request->brand)
@@ -78,9 +78,9 @@ class ShopController extends Controller
         //     ->searchAll($request->search_all)
         //     ->paginate($request->rows, ['*'], 'page', $request->page);
 
-        // $youtube = Youtube::first()->youtubeid;
+        $youtube = Youtube::first()->youtubeid;
 
-        // return response()->json(compact('products', 'youtube'));
+        return response()->json(compact('products', 'youtube'));
     }
 
     public function categoryProducts(Request $request)
