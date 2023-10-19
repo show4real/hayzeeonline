@@ -32,7 +32,7 @@ class ShopController extends Controller
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
             ->inRandomOrder()
-            ->searchAll($request->search_all)
+            ->search($request->search_all)
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
         $youtube = Youtube::first()->youtubeid;
