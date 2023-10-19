@@ -23,60 +23,17 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        $query = (new Product)->newQuery();
-
-    if ($request->has('category')) {
-        $query->category($request->category);
-    }
-
-    // if ($request->has('storages')) {
-    //     $query->storage($request->storages);
-    // }
-
-    // if ($request->has('processors')) {
-    //     $query->processor($request->processors);
-    // }
-
-    // if ($request->has('rams')) {
-    //     $query->ram($request->rams);
-    // }
-
-   
-
-    if ($request->has('sort')) {
-        $query->sort($request->sort);
-    }
-
-    if ($request->price[0]) {
-        $query->filterByPrice($request->price[0], $request->price[1], $request->search_all);
-    }
-
-    if ($request->has('search_all')) {
-        $query->searchAll($request->search_all);
-    }
-
-    // Add the pagination condition
-    $rows = $request->has('rows') ? $request->rows : 10; // Assuming 10 rows by default
-    $page = $request->has('page') ? $request->page : 1; // Assuming first page by default
-
-    $products = $query->storage($request->storages)
+        $products = Product::brand($request->brand)
+            ->category($request->category)
+            ->storage($request->storages)
             ->processor($request->processors)
-            ->ram($request->rams)->paginate($rows, ['*'], 'page', $page);
-
-  
-         //$products->paginate($request->rows, ['*'], 'page', $request->page);
-
-        // $products = Product::brand($request->brand)
-        //     ->category($request->category)
-        //     ->storage($request->storages)
-        //     ->processor($request->processors)
-        //     ->ram($request->rams)
-        //     ->sort($request->sort)
-        //     ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
-        //     ->orderByRaw("availability = 1 DESC")
-        //     ->inRandomOrder()
-        //     ->searchAll($request->search_all)
-        //     ->paginate($request->rows, ['*'], 'page', $request->page);
+            ->ram($request->rams)
+            ->sort($request->sort)
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+            ->orderByRaw("availability = 1 DESC")
+            ->inRandomOrder()
+            ->searchAll($request->search_all)
+            ->paginate($request->rows, ['*'], 'page', $request->page);
 
         $youtube = Youtube::first()->youtubeid;
 
