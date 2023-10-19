@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\ProductImages;
 use App\Models\ProductDescription;
 use App\Models\Category;
-use DB;
 
 class Product extends Model
 {
@@ -38,15 +37,14 @@ class Product extends Model
     public function scopeSearchAll($query, $filter)
 {
     $searchQuery = trim($filter);
-    if (!empty($keyword)) {
-            return $query->select('*', DB::raw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE) as relevance_score"))
-                ->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)")
-                ->orderByDesc('relevance_score');
-    } else {
-        return $query;
-    }
 
-  
+    $query->when($filter != '', function ($query) use ($searchQuery) {
+        return $query->select('*', DB::raw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE) as relevance_score"))
+            ->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)")
+            ->orderByDesc('relevance_score');
+    });
+
+
 }
 
 
