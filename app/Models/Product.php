@@ -35,15 +35,18 @@ class Product extends Model
     // ALTER TABLE products ADD FULLTEXT INDEX fulltext_index_name (name, description);
 
 
-  public function scopeSearchAll($query, $filter)
+ public function scopeSearchAll($query, $filter)
 {
     $searchQuery = trim($filter);
 
     $query->when($filter != '', function ($query) use ($searchQuery) {
-        return $query->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)")
+        return $query->select('*')
+            ->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)")
+            ->orderByRaw("CASE WHEN name = '$searchQuery' THEN 1 ELSE 2 END")
             ->orderByRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE) DESC");
     });
 }
+
 
 
 
