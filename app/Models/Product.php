@@ -40,17 +40,12 @@ public function scopeSearchAll($query, $filter)
     $searchQuery = trim($filter);
 
     $query->when($filter != '', function ($query) use ($searchQuery) {
-        return $query
-            ->select('*', DB::raw("1 as is_exact_match"))
-            ->where('name', $searchQuery)
-            ->union(
-                $query->select('*', DB::raw("0 as is_exact_match"))
-                    ->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)")
-            )
-            ->orderBy('is_exact_match', 'desc')
-            ->orderByRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE) DESC");
+        return $query->select(DB::raw("MATCH(search_tags) AGAINST('$searchQuery *') + MATCH(search_tags) AGAINST('$searchQuery') AS relevance_rank"))
+            ->whereRaw("MATCH(search_tags) AGAINST('$searchQuery *') OR MATCH(search_tags) AGAINST('$searchQuery')")
+            ->orderByRaw("relevance_rank DESC");
     });
 }
+
 
 
 
