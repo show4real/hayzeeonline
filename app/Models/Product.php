@@ -44,7 +44,7 @@ class Product extends Model
             ->when($searchQuery, function ($query) use ($searchQuery) {
                 return $query->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)");
             })
-            ->orderByDesc('relevance_score');
+            ->orderBy('relevance_score');
     });
 }
 
