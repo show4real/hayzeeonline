@@ -21,12 +21,10 @@ class ShopController extends Controller
     }
 
     public function searchProducts(Request $request){
-
-
-        $products = Product::sort($request->sort)->search($request->search_all)
+        $products = Product::search($request->search_all)
         ->query(function($query) use ($request) {
             return $query
-          
+            ->sort($request->sort)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
@@ -56,7 +54,6 @@ class ShopController extends Controller
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
             ->inRandomOrder()
-            ->where('availability', 1)
             ->paginate($request->rows, ['*'], 'page', $request->page);
     
 
