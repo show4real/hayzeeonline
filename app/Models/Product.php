@@ -26,6 +26,8 @@ class Product extends Model
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'price' => $this->price,
+            'availability' => $this->availability,
             // Add other searchable fields here.
         ];
     }
