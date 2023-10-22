@@ -17,7 +17,7 @@ class BrandController extends Controller
 
     public function index(Request $request)
     {
-        $brands = Brand::search($request->search)
+        $brands = Brand::searchAll($request->search)
             ->paginate($request->rows, ['*'], 'page', $request->page);
         return response()->json(compact('brands'));
     }

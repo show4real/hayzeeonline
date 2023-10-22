@@ -18,7 +18,7 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        $categories = Category::search($request->search)
+        $categories = Category::searchAll($request->search)
             ->latest()
             ->paginate($request->rows == null ? 100 : $request->rows, ['*'], 'page', $request->page);
         $youtube = Youtube::first()->youtubeid;

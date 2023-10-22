@@ -23,7 +23,7 @@ class Order extends Model
         return $this->belongsTo('App\Models\User', 'user_id');
     }
     
-    public function scopeSearch($query, $filter)
+    public function scopeSearchAll($query, $filter)
     {
     	$searchQuery = trim($filter);
     	$requestData = ['description','id'];

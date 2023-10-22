@@ -11,7 +11,7 @@ class Category extends Model
 
     protected $fillable = ['name', 'slug', 'attributes', 'created_at', 'image_url', 'updated_at'];
 
-    public function scopeSearch($query, $filter)
+    public function scopeSearchAll($query, $filter)
     {
         $searchQuery = trim($filter);
         $requestData = ['name'];

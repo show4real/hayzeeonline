@@ -18,7 +18,7 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $products = Product::search($request->search)
+        $products = Product::searchAll($request->search)
             ->brand($request->brand)
             ->category($request->category)
             ->sort($request->sort)

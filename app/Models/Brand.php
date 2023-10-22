@@ -11,7 +11,7 @@ class Brand extends Model
 
     protected $fillable = ['name', 'slug', 'image_url', 'created_at', 'updated_at'];
 
-    public function scopeSearch($query, $filter)
+    public function scopeSearchAll($query, $filter)
     {
         $searchQuery = trim($filter);
         $requestData = ['name'];

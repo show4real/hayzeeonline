@@ -13,7 +13,7 @@ class Blog extends Model
     protected $fillable = ['name', 'slug', 'created_at', 'image', 'description', 'updated_at'];
 
     protected $appends = ['month'];
-    public function scopeSearch($query, $filter)
+    public function scopeSearchAll($query, $filter)
     {
         $searchQuery = trim($filter);
         $requestData = ['name'];

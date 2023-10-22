@@ -11,7 +11,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $users = User::search($request->search)
+        $users = User::searchAll($request->search)
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
         return response()->json(compact('users'));

@@ -66,7 +66,7 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
-    public function scopeSearch($query, $filter)
+    public function scopeSearchAll($query, $filter)
     {
         $searchQuery = trim($filter);
         $requestData = ['name'];

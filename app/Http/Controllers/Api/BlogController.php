@@ -16,7 +16,7 @@ class BlogController extends Controller
 
     public function index(Request $request)
     {
-        $blogs = Blog::search($request->search)
+        $blogs = Blog::searchAll($request->search)
             ->latest()
             ->paginate($request->rows, ['*'], 'page', $request->page);
         return response()->json(compact('blogs'));
