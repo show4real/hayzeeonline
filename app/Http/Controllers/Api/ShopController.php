@@ -44,7 +44,7 @@ class ShopController extends Controller
 
         $products = Product::
         searchAll($request->search_all)
-        ->where('availability', 1)
+        
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
@@ -54,6 +54,7 @@ class ShopController extends Controller
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
             ->inRandomOrder()
+            ->where('availability', 1)
             ->paginate($request->rows, ['*'], 'page', $request->page);
     
 
