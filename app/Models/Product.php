@@ -8,10 +8,27 @@ use App\Models\ProductImages;
 use App\Models\ProductDescription;
 use App\Models\Category;
 use DB;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
     use HasFactory;
+    use Searchable;
+   
+    public function searchableAs()
+    {
+        return 'product_index';
+    }    
+
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            // Add other searchable fields here.
+        ];
+    }
 
     protected $fillable = [
         'name',
@@ -51,17 +68,17 @@ class Product extends Model
 
 
 
-    public function scopeSearch($query, $filter)
-    {
-        $searchQuery = trim($filter);
-        $requestData = ['name', 'description'];
-        $query->when($filter != '', function ($query) use ($requestData, $searchQuery) {
-            return $query->where(function ($q) use ($requestData, $searchQuery) {
-                foreach ($requestData as $field)
-                    $q->orWhere($field, 'like', "%{$searchQuery}%");
-            })->orderByRaw("FIELD(availability,1) DESC")->orderBy("updated_at", "DESC");
-        });
-    }
+    // public function scopeSearch($query, $filter)
+    // {
+    //     $searchQuery = trim($filter);
+    //     $requestData = ['name', 'description'];
+    //     $query->when($filter != '', function ($query) use ($requestData, $searchQuery) {
+    //         return $query->where(function ($q) use ($requestData, $searchQuery) {
+    //             foreach ($requestData as $field)
+    //                 $q->orWhere($field, 'like', "%{$searchQuery}%");
+    //         })->orderByRaw("FIELD(availability,1) DESC")->orderBy("updated_at", "DESC");
+    //     });
+    // }
 
 
     public function scopeSort($query, $filter)
