@@ -24,7 +24,7 @@ class ShopController extends Controller
     {
 
         $products = Product::
-        search($request->search_all)
+        searchAll($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
