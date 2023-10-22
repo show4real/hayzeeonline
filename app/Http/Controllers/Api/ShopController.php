@@ -33,6 +33,10 @@ class ShopController extends Controller
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all);
         })->paginate(12);
 
+         $youtube = Youtube::first()->youtubeid;
+
+        return response()->json(compact('products', 'youtube'));
+
     }
 
     public function products(Request $request)
