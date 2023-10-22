@@ -23,30 +23,31 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        // $products = Product::
-        // search($request->search_all)
-        //     ->brand($request->brand)
-        //     ->category($request->category)
-        //     ->storage($request->storages)
-        //     ->processor($request->processors)
-        //     ->ram($request->rams)
-        //     ->sort($request->sort)
-        //     ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
-        //     ->orderByRaw("availability = 1 DESC")
-        //     ->inRandomOrder()
-        //     ->paginate($request->rows, ['*'], 'page', $request->page);
-    $products = Product::search($request->search_all)
-        ->query(function($query) use ($request) {
-            return $query->brand($request->brand)
+        $products = Product::
+        search($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
             ->sort($request->sort)
-            ->filterByPrice($request->price[0], $request->price[1], $request->search_all);
-        })->orderByRaw("availability = 1 DESC")
-            ->inRandomOrder()->paginate(12);
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+            ->orderByRaw("availability = 1 DESC")
+            ->inRandomOrder()
+            ->paginate($request->rows, ['*'], 'page', $request->page);
+    // $products = Product::search($request->search_all)
+    //     ->query(function($query) use ($request) {
+    //         return $query->brand($request->brand)
+    //         ->brand($request->brand)
+    //         ->category($request->category)
+    //         ->storage($request->storages)
+    //         ->processor($request->processors)
+    //         ->ram($request->rams)
+    //         ->sort($request->sort)
+    //         ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+    //         ->orderByRaw("availability = 1 DESC")
+    //         ->inRandomOrder();
+    //     })->paginate(12);
 
 
 
