@@ -56,6 +56,7 @@ Route::controller(ProductController::class)->group(function () {
 Route::controller(ShopController::class)->group(function () {
     Route::post('products/trending', 'trending');
     Route::post('user/products', 'products');
+    Route::post('search/products', 'searchProducts');
     Route::post('user/brands', 'brands');
      Route::post('other_sales', 'otherSales');
 
