@@ -24,14 +24,13 @@ class ShopController extends Controller
         $products = Product::search($request->search_all)
         ->query(function($query) use ($request) {
             return $query->brand($request->brand)
-            ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all);
-        })->paginate(12);
+        })->paginate(50);
 
          $youtube = Youtube::first()->youtubeid;
 
