@@ -79,8 +79,8 @@ class ShopController extends Controller
     {
 
 
-        $products = Product::search($request->search)
-            ->searchAll($request->search_all)
+        $products = Product::
+            searchAll($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->catProduct($request->categoryslug)
