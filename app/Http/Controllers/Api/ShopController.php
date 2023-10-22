@@ -24,6 +24,7 @@ class ShopController extends Controller
         $products = Product::search($request->search_all)
         ->query(function($query) use ($request) {
             return $query
+            ->where('availability', 1)
             ->sort($request->sort)
             ->brand($request->brand)
             ->category($request->category)
