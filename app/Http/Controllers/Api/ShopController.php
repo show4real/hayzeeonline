@@ -23,7 +23,8 @@ class ShopController extends Controller
     public function searchProducts(Request $request){
         $products = Product::search($request->search_all)
         ->query(function($query) use ($request) {
-            return $query->sort($request->sort)
+            return $query
+            ->sort($request->sort)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
@@ -43,6 +44,7 @@ class ShopController extends Controller
 
         $products = Product::
         searchAll($request->search_all)
+        ->where('availability', 1)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
