@@ -54,33 +54,33 @@ class Product extends Model
     // ALTER TABLE products ADD FULLTEXT INDEX fulltext_index_name (name, description);
 
 
-   public function scopeSearchAll($query, $filter)
-{
-    $searchQuery = trim($filter);
+//    public function scopeSearchAll($query, $filter)
+// {
+//     $searchQuery = trim($filter);
 
-    $query->when($filter != '', function ($query) use ($searchQuery) {
-        return $query->select('*', DB::raw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE) as relevance_score"))
-            ->when($searchQuery, function ($query) use ($searchQuery) {
-                return $query->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)");
-            })
-            ->orderBy('relevance_score');
-    });
-}
-
-
+//     $query->when($filter != '', function ($query) use ($searchQuery) {
+//         return $query->select('*', DB::raw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE) as relevance_score"))
+//             ->when($searchQuery, function ($query) use ($searchQuery) {
+//                 return $query->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)");
+//             })
+//             ->orderBy('relevance_score');
+//     });
+// }
 
 
-    // public function scopeSearch($query, $filter)
-    // {
-    //     $searchQuery = trim($filter);
-    //     $requestData = ['name', 'description'];
-    //     $query->when($filter != '', function ($query) use ($requestData, $searchQuery) {
-    //         return $query->where(function ($q) use ($requestData, $searchQuery) {
-    //             foreach ($requestData as $field)
-    //                 $q->orWhere($field, 'like', "%{$searchQuery}%");
-    //         })->orderByRaw("FIELD(availability,1) DESC")->orderBy("updated_at", "DESC");
-    //     });
-    // }
+
+
+    public function scopeSearchAll($query, $filter)
+    {
+        $searchQuery = trim($filter);
+        $requestData = ['name', 'description'];
+        $query->when($filter != '', function ($query) use ($requestData, $searchQuery) {
+            return $query->where(function ($q) use ($requestData, $searchQuery) {
+                foreach ($requestData as $field)
+                    $q->orWhere($field, 'like', "%{$searchQuery}%");
+            })->orderByRaw("FIELD(availability,1) DESC")->orderBy("updated_at", "DESC");
+        });
+    }
 
 
     public function scopeSort($query, $filter)
