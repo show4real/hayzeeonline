@@ -16,7 +16,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-         $schedule->command('scout:import "App\Models\Product"')->hourlyAt(12);
+         $schedule->command('scout:import "App\Models\Product"')->everyFiveMinutes();
     }
 
     /**
