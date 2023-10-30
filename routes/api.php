@@ -58,7 +58,9 @@ Route::controller(ShopController::class)->group(function () {
     Route::post('user/products', 'products');
     Route::post('search/products', 'searchProducts');
     Route::post('user/brands', 'brands');
-     Route::post('other_sales', 'otherSales');
+    Route::post('other_sales', 'otherSales');
+    Route::post('quick_search', 'quickProductSearch');
+    Route::post('laptop_products', 'laptopProducts');
 
     Route::post('category/products', 'categoryProducts');
     Route::get('singleproduct/{product}', 'show');

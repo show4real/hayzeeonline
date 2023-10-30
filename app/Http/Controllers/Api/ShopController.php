@@ -38,6 +38,31 @@ class ShopController extends Controller
 
     }
 
+    public function quickProductSearch(Request $request){
+        $products = Product::search($request->search_all)->take(12)->get();
+
+        return response()->json(compact('products'));
+
+    }
+
+    public function laptopProducts(Request $request){
+
+        $products = Product::where('category_id', [26,27,28,29,30,38])
+            ->searchAll($request->search_all)
+            ->brand($request->brand)
+            ->category($request->category)
+            ->storage($request->storages)
+            ->processor($request->processors)
+            ->ram($request->rams)
+            ->sort($request->sort)
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+            ->orderByRaw("availability = 1 DESC")
+            ->inRandomOrder()
+            ->paginate($request->rows, ['*'], 'page', $request->page);
+
+          return response()->json(compact('products'));
+    }
+
     public function products(Request $request)
     {
 
@@ -54,9 +79,6 @@ class ShopController extends Controller
             ->inRandomOrder()
             ->paginate($request->rows, ['*'], 'page', $request->page);
     
-
-
-
 
         $youtube = Youtube::first()->youtubeid;
 
@@ -102,8 +124,10 @@ class ShopController extends Controller
     
      public function otherSales(Request $request)
     {
-        $products = Product::where('other_sales', $request->sale_type)->take(16)->get();
+        $products = Product::where('availability', 1)->where('other_sales', $request->sale_type)->take(16)->get();
 
         return response()->json(compact('products'));
     }
+
+    
 }

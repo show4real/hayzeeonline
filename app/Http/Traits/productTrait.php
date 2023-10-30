@@ -53,24 +53,41 @@ trait productTrait
 
     public function create($data, $imageName)
     {
-        $imageUrl = URL::asset('images/' . $imageName);
-        $product = Product::create([
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'product_type' => $data['product_type'],
-            'price' => $data['price'],
-            'other_sales' => $data['other_sales'],
-            'availability' => $data['availability'],
-            'category_id' => $data['category'],
-            'brand_id' => $data['brand'],
-            'ram' => $data['ram'],
-            'storage' => $data['storage'],
-            'processor' => $data['processor'],
-            'slug' => $this->createSlug($data['name']),
-            'image' => $imageUrl,
+        // $imageUrl = URL::asset('images/' . $imageName);
+        // $product = Product::create([
+        //     'name' => $data['name'],
+        //     'description' => $data['description'],
+        //     'product_type' => $data['product_type'],
+        //     'price' => $data['price'],
+        //     'other_sales' => $data['other_sales'],
+        //     'availability' => $data['availability'],
+        //     'category_id' => $data['category'],
+        //     'brand_id' => $data['brand'],
+        //     'ram' => $data['ram'],
+        //     'storage' => $data['storage'],
+        //     'processor' => $data['processor'],
+        //     'slug' => $this->createSlug($data['name']),
+        //     'image' => $imageUrl,
             
 
-        ]);
+        // ]);
+
+        $imageUrl = URL::asset('images/' . $imageName);
+        $product = new Product();
+        $product->name = $data['name'];
+        $product->description = $data['description'];
+        $product->product_type = $data['product_type'];
+        $product->price = $data['price'];
+        $product->other_sales = $data['other_sales'];
+        $product->availability = $data['availability'];
+        $product->category_id = $data['category'];
+        $product->brand_id = $data['brand'];
+        $product->ram = $data['ram'];
+        $product->storage = $data['storage'];
+        $product->processor = $data['processor'];
+        $product->slug = $this->createSlug($data['name']);
+        $product->image = $imageUrl;
+        $product->save();
 
         if (count($data->labels) > 0) {
             for ($i = 0; $i < count($data->labels); $i++) {
@@ -89,23 +106,39 @@ trait productTrait
     {
 
         $imageUrl = URL::asset('images/' . $imageName);
-        $product->update([
-            'name' => $request['name'],
-            'description' => $request['description'],
-            'product_type' => $request['product_type'],
-            'price' => $request['price'],
-            'availability' => $request['availability'],
-            'category_id' => $request['category'],
-            'brand_id' => $request['brand'],
-            'ram' => $request['ram'],
-            'storage' => $request['storage'],
-            'processor' => $request['processor'],
-            'slug' => $this->createSlug($request['name']),
-            'image' => $imageUrl,
-            'other_sales' => $request['other_sales'],
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        // $product->update([
+        //     'name' => $request['name'],
+        //     'description' => $request['description'],
+        //     'product_type' => $request['product_type'],
+        //     'price' => $request['price'],
+        //     'availability' => $request['availability'],
+        //     'category_id' => $request['category'],
+        //     'brand_id' => $request['brand'],
+        //     'ram' => $request['ram'],
+        //     'storage' => $request['storage'],
+        //     'processor' => $request['processor'],
+        //     'slug' => $this->createSlug($request['name']),
+        //     'image' => $imageUrl,
+        //     'other_sales' => $request['other_sales'],
+        //     'created_at' => now(),
+        //     'updated_at' => now()
+        // ]);
+        $product->name = $request['name'];
+        $product->description = $request['description'];
+        $product->product_type = $request['product_type'];
+        $product->price = $request['price'];
+        $product->availability = $request['availability'];
+        $product->category_id = $request['category'];
+        $product->brand_id = $request['brand'];
+        $product->ram = $request['ram'];
+        $product->storage = $request['storage'];
+        $product->processor = $request['processor'];
+        $product->slug = $this->createSlug($request['name']);
+        $product->image = $imageUrl;
+        $product->other_sales = $request['other_sales'];
+        $product->created_at = now();
+        $product->updated_at = now();
+        $product->save();
 
         if ($request->labels && count($request->labels) > 0) {
 
