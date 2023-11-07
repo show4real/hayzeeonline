@@ -37,14 +37,14 @@ trait SignUpTrait
 
         ]);
 
-        if($request->referral){
+        if($request->referrer){
             $username = explode('@', $user->email);
             
-            $referral = new Referrer();
-            $referral->referral_code = Str::random(5).$username[0];
-            $referral->user_id = $user->id;
-            $referral->name = $request->name;
-            $referral->save();
+            $referrer = new Referrer();
+            $referrer->referral_code = Str::random(5).$username[0];
+            $referrer->user_id = $user->id;
+            $referrer->name = $request->name;
+            $referrer->save();
 
              $name = $request->name;
                 $email = $request->email;
@@ -62,8 +62,10 @@ trait SignUpTrait
                 $mail->subject($subject);
             }
         );
-         return $user;
+        
         }
+
+         return $user;
 
        
         
