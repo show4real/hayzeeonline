@@ -47,7 +47,6 @@ class AuthController extends Controller
         return response()->json(compact('user'));
         
         } else {
-
              $user= 'expired';
             return response()->json(compact('user'),401);
 

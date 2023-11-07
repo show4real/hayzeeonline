@@ -77,9 +77,9 @@ Route::middleware(['auth:api', 'CheckReferrer'])->group(function () {
 
     Route::controller(ReferrerController::class)->group(function () {
         Route::post('referrer/updateprofile', 'addProfile');
+        Route::post('referrer/transactions', 'myTransactions');
     });
 
-   
 });
 
 
@@ -94,7 +94,10 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
     });
 
     Route::controller(ReferrerController::class)->group(function () {
+         Route::post('referrers', 'referrers');
         Route::post('referrer/approve', 'approve');
+        Route::post('add/transactions', 'addTransaction');
+        
     });
 
     Route::controller(BrandController::class)->group(function () {

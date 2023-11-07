@@ -13,7 +13,7 @@ class ReferrerController extends Controller
 
 
 
-    public function referrals(Request $request){
+    public function referrers(Request $request){
 
         $referrers = Referrer::with('users')->paginate(10);
 
