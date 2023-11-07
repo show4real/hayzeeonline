@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\YoutubeController;
+use App\Http\Controllers\Api\ReferrerController;
 
 
 /*
@@ -27,6 +28,7 @@ use App\Http\Controllers\Api\YoutubeController;
 Route::controller(AuthController::class)->group(function () {
     Route::post('signup', 'signup');
     Route::post('login', 'login');
+    Route::get('verify/{email}', 'verify');
 });
 
 Route::controller(CategoryController::class)->group(function () {
@@ -71,6 +73,15 @@ Route::controller(BlogController::class)->group(function () {
     Route::get('blog/{product}', 'show');
 });
 
+Route::middleware(['auth:api', 'CheckReferrer'])->group(function () {
+
+    Route::controller(ReferrerController::class)->group(function () {
+        Route::post('referrer/updateprofile', 'addProfile');
+    });
+
+   
+});
+
 
 
 
@@ -80,6 +91,10 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
 
     Route::controller(UserController::class)->group(function () {
         Route::post('users', 'index');
+    });
+
+    Route::controller(ReferrerController::class)->group(function () {
+        Route::post('referrer/approve', 'approve');
     });
 
     Route::controller(BrandController::class)->group(function () {

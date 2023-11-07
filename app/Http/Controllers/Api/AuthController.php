@@ -34,4 +34,25 @@ class AuthController extends Controller
 
         ]);
     }
+
+
+    public function verify($email){
+      $user = User::where('email', $email)->first();
+      if($user && $user->status == null){
+
+        $user->status = 1;
+        $user->email_verified_at = now();
+        $user->save();
+
+        return response()->json(compact('user'));
+        
+        } else {
+
+             $user= 'expired';
+            return response()->json(compact('user'),401);
+
+        }
+     
+      
+    }
 }
