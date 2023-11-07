@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\Referrer;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
  
 trait SignUpTrait
 {
@@ -45,21 +46,26 @@ trait SignUpTrait
             $referral->name = $request->name;
             $referral->save();
 
+             $name = $request->name;
+                $email = $request->email;
+                $subject = 'Hayzee Computer Resources Referral Registration';
+
              Mail::send(
-            'mail.cart',
+            'mail.verify',
             [
                 'referral' => $referral,
                
             ],
             function ($mail) use ($name, $subject) {
                 $mail->from('test@hayzeeonline.com', 'Hayzee Computer Resources');
-                $mail->to('hayzeecomputerresources@gmail.com', $name);
+                $mail->to($email, $name);
                 $mail->subject($subject);
             }
         );
+         return $user;
         }
 
-        return $user;
+       
         
     }
 
