@@ -53,7 +53,7 @@ trait SignUpTrait
              Mail::send(
             'mail.verify',
             [
-                'referral' => $referral,
+                'referrer' => $referrer,
                
             ],
             function ($mail) use ($name, $subject) {
