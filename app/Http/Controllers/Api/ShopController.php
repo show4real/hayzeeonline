@@ -121,6 +121,7 @@ class ShopController extends Controller
     {
         $brands = Brand::get();
         return response()->json(compact('brands'));
+        //return json_encode($brands);
     }
     
      public function otherSales(Request $request)
