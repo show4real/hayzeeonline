@@ -54,6 +54,7 @@ trait SignUpTrait
             'mail.verify',
             [
                 'referrer' => $referrer,
+                'email' => $email
                
             ],
             function ($mail) use ($name, $email, $subject) {

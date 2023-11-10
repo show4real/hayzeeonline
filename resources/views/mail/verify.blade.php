@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>Hayzeeonline Checkout Orders</title>
+    <title>Hayzeeonline Referrer Sign up</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -176,7 +176,7 @@
             <div class="product-info">
                 <div class="product-name">
 
-                <a href="https://hayzeeonline.com/verify/{{$user->email}}" target="_blank" style="display: inline-block; padding: 16px 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px;">Reset Password</a>
+                <a href="https://hayzeeonline.com/verify/{{$email}}" target="_blank" style="display: inline-block; padding: 16px 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px;">Reset Password</a>
 
                 </div>
             </div>
