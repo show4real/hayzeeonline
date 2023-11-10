@@ -86,15 +86,16 @@
 
         <!-- Content -->
         <div class="content">
-            <p>Hello {{$referrer->name}},</p>
+            <p style="text-transform:capitalize;">Hello {{$referrer->name}},</p>
             <p>Thank you for signing up. Click the button below to confirm your email address and get started.</p>
-            <a href="https://hayzeeonline.com/verify/{{$email}}" class="btn">Confirm Email Address</a>
+            <a href="https://hayzeeonline.com/verify/{{$referrer->referral_code}}" class="btn">Confirm Email Address</a>
         </div>
 
         <!-- Footer -->
         <div class="footer">
             <p>Contact us at support@hayzeeonline.com</p>
-            <p>Sent by Hayzee Computer Resources • <a href="https://hayzeeonline.com" target="_blank">Visit our Website</a> • <a href="https://twitter.com/example" target="_blank">@example</a></p>
+            <p>Sent by Hayzee Computer Resources • <a href="https://hayzeeonline.com" target="_blank">Visit our Website</a> • <br/>
+            <a href="https://twitter.com/hayzeeonline" target="_blank">@hayzeeonline</a></p>
             <p>Spectral Business center, The Polytechnic Ibadan, Oyo State. NG</p>
         </div>
     </div>

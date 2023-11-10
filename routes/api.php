@@ -28,7 +28,7 @@ use App\Http\Controllers\Api\ReferrerController;
 Route::controller(AuthController::class)->group(function () {
     Route::post('signup', 'signup');
     Route::post('login', 'login');
-    Route::get('verify/{email}', 'verify');
+    Route::post('verify', 'verify');
 });
 
 Route::controller(CategoryController::class)->group(function () {

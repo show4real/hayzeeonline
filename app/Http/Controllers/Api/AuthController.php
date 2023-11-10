@@ -36,8 +36,11 @@ class AuthController extends Controller
     }
 
 
-    public function verify($email){
-      $user = User::where('email', $email)->first();
+    public function verify(Request $request){
+      $referrer = Referrer::where('referral_code', $request->referrer_code)->first();
+
+      $user = $referrer !== null ? User::where('id', $referrer->user_id)->first() : null;
+
       if($user && $user->status == null){
 
         $user->status = 1;
@@ -52,6 +55,6 @@ class AuthController extends Controller
 
         }
      
-      
+     
     }
 }
