@@ -15,7 +15,7 @@ class ReferrerController extends Controller
 
     public function referrers(Request $request){
 
-        $referrers = Referrer::with('users')->paginate(10);
+        $referrers = Referrer::with('user')->paginate(10);
 
         return response()->json(compact('referrers'));
 
