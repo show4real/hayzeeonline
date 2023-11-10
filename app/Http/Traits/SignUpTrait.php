@@ -56,7 +56,7 @@ trait SignUpTrait
                 'referrer' => $referrer,
                
             ],
-            function ($mail) use ($name, $subject) {
+            function ($mail) use ($name, $email, $subject) {
                 $mail->from('test@hayzeeonline.com', 'Hayzee Computer Resources');
                 $mail->to($email, $name);
                 $mail->subject($subject);
