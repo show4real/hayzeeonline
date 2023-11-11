@@ -9,6 +9,8 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    protected $appends = ['name','code'];
+
      public function scopeReferrer($query, $filter)
     {
         if ($filter) {
@@ -20,6 +22,23 @@ class Transaction extends Model
       public function referrer()
     {
         return $this->belongsTo('App\Models\Referrer', 'referrer_id');
+    }
+
+
+     public function getNameAttribute()
+    {
+        $referrer = Referrer::where('id', $this->referrer_id)->first();
+        if ($referrer) {
+            return $referrer->name;
+        }
+    }
+
+     public function getCodeAttribute()
+    {
+        $referrer = Referrer::where('id', $this->referrer_id)->first();
+        if ($referrer) {
+            return $referrer->referral_code;
+        }
     }
 
 
