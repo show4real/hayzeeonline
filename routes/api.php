@@ -95,9 +95,10 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
 
     Route::controller(ReferrerController::class)->group(function () {
         Route::post('referrers', 'referrers');
+        Route::post('allreferrers', 'allReferrers');
 
         Route::post('referrer/approve', 'approve');
-        Route::post('transactions', 'transactions');
+        Route::post('transactions', 'allTransactions');
         Route::post('add/transactions', 'addTransaction');
 
         

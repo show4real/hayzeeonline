@@ -15,7 +15,15 @@ class ReferrerController extends Controller
 
     public function referrers(Request $request){
 
-        $referrers = Referrer::with('user')->paginate(10);
+        $referrers = Referrer::with('user')->paginate(10000);
+
+        return response()->json(compact('referrers'));
+
+    }
+
+     public function allReferrers(Request $request){
+
+        $referrers = Referrer::with('user')->get();
 
         return response()->json(compact('referrers'));
 
@@ -42,7 +50,7 @@ class ReferrerController extends Controller
 
     public function approve(Request $request){
 
-        $referrer= Referrer::where('user_id', $request->referrer_id)->first();
+        $referrer= Referrer::where('id', $request->referrer_id)->first();
         if($referrer){
             $referrer->status = $request->status;
             $referrer->approved_at = Carbon::now();
@@ -52,6 +60,7 @@ class ReferrerController extends Controller
 
             return response()->json(compact('referrer'));
         }
+        return response()->json(compact('referrer'),404);
     }
 
 
@@ -77,7 +86,8 @@ class ReferrerController extends Controller
 
     public function allTransactions(Request $request){
 
-        $transactions = Transaction::where('referrer_id', $request->referrer_id)->paginate(10);
+        $transactions = Transaction::search($request->search)
+            ->referrer($request->referrer_id)->paginate(10);
         
         return response()->json(compact('transactions'));
     }
