@@ -69,8 +69,9 @@ class ReferrerController extends Controller
         $referrer = Referrer::where('referral_code', $request->referrer_code)->first();
 
         $product_cost = $request->product_cost;
+        $percentage = $request->percentage;
 
-        $amount_paid = $product_cost - (($request->percentage/100)*$product_cost);
+        $amount_paid = $product_cost - ($percentage / 100 * $product_cost);
 
         $transaction = new Transaction();
         $transaction->product_cost = $product_cost;
