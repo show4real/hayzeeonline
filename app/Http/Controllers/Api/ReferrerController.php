@@ -78,7 +78,7 @@ class ReferrerController extends Controller
          $transaction->percentage = $percentage;
         $transaction->paid = $amount_paid;
         $transaction->user_id = $referrer->user_id;
-        $transaction->referrer_id = $referrer->referrer_id;
+        $transaction->referrer_id = $referrer->id;
         $transaction->status = $request->status;
         $transaction->save();
 
