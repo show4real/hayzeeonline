@@ -66,7 +66,7 @@ class ReferrerController extends Controller
 
     public function addTransaction(Request $request){
 
-        $referrer = Referrer::where('referrer_code', $request->referrer_code)->first();
+        $referrer = Referrer::where('referral_code', $request->referrer_code)->first();
 
         $product_cost = $request->product_cost;
 
