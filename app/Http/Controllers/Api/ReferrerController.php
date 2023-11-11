@@ -71,10 +71,11 @@ class ReferrerController extends Controller
         $product_cost = $request->product_cost;
         $percentage = $request->percentage;
 
-        $amount_paid = $product_cost - ($percentage / 100 * $product_cost);
+        $amount_paid =  ($percentage / 100 * $product_cost);
 
         $transaction = new Transaction();
         $transaction->product_cost = $product_cost;
+         $transaction->percentage = $percentage;
         $transaction->paid = $amount_paid;
         $transaction->user_id = $referrer->user_id;
         $transaction->referrer_id = $referrer->referrer_id;
