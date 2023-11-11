@@ -99,6 +99,18 @@ class ReferrerController extends Controller
         return response()->json(compact('transactions'));
     }
 
+      public function deleteTransaction($id)
+    {
+        $transaction = Transaction::find($id);
+
+        if ($transaction) {
+           
+            $transaction->delete();
+            return response()->json(true);
+        }
+        return response()->json(['message' => 'transaction not found'], 404);
+    }
+
 
 
 }
