@@ -88,7 +88,7 @@ class ReferrerController extends Controller
 
         $transactions = Transaction::search($request->search)
             ->referrer($request->referrer_id)->paginate(10);
-        
+    
         return response()->json(compact('transactions'));
     }
 

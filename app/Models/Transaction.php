@@ -18,7 +18,7 @@ class Transaction extends Model
     }
 
 
-      public function scopeSearchAll($query, $filter)
+      public function scopeSearch($query, $filter)
     {
         $searchQuery = trim($filter);
         $requestData = ['name', 'referral_code'];
