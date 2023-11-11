@@ -74,7 +74,7 @@ class ReferrerController extends Controller
 
         $transaction = new Transaction();
         $transaction->product_cost = $product_cost;
-        $transaction->amount_paid = $amount_paid;
+        $transaction->paid = $amount_paid;
         $transaction->user_id = $referrer->user_id;
         $transaction->referrer_id = $referrer->referrer_id;
         $transaction->status = $request->status;
