@@ -20,6 +20,8 @@ class CreateTransactionsTable extends Migration
             $table->integer('status')->nullable();
             $table->integer('product_cost')->nullable();
             $table->integer('paid')->nullable();
+            $table->integer('percentage')->nullable();
+            $table->integer('approved_by')->nullable();
             $table->timestamps();
         });
     }

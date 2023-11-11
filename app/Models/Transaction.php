@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Referrer;
 
 class Transaction extends Model
 {
     use HasFactory;
 
-    protected $appends = ['name','code'];
+    protected $appends = ['name','code','approver'];
 
      public function scopeReferrer($query, $filter)
     {
@@ -33,6 +35,14 @@ class Transaction extends Model
         }
     }
 
+     public function getApproverAttribute()
+    {
+        $user = User::where('id', $this->approved_by)->first();
+        if ($user) {
+            return $user->name;
+        }
+    }
+
      public function getCodeAttribute()
     {
         $referrer = Referrer::where('id', $this->referrer_id)->first();
@@ -40,10 +50,6 @@ class Transaction extends Model
             return $referrer->referral_code;
         }
     }
-
-
-
-
 
      public function scopeSearch($query, $filter)
     {
