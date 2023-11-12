@@ -29,6 +29,14 @@ class ReferrerController extends Controller
 
     }
 
+    public function referrerProfile(Request $request){
+        $referrer = Referrer::where('user_id', auth()->user()->id)->first();
+
+        
+         return response()->json(compact('referrer'));
+
+    }
+
     public function addProfile(Request $request){
 
 
