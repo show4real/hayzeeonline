@@ -40,9 +40,14 @@ class ReferrerController extends Controller
     public function addProfile(Request $request){
 
 
-        $user = auth()->user();
+        $authuser = auth()->user();
 
-        $referrer = Referrer::where('user_id', $user->id)->first();
+        $referrer = Referrer::where('user_id', $authuser->id)->first();
+        $user = User::find($authuser->id);
+        $user->phone = $request->phone;
+        $user->save();
+
+        
 
         $referrer->address= $request->address;
         $referrer->bank_name = $request->bank_name;
@@ -50,6 +55,8 @@ class ReferrerController extends Controller
         $referrer->account_type = $request->account_type;
         $referrer->account_number = $request->account_number;
         $referrer->save();
+
+        
 
         return response()->json(compact('referrer'));
 
