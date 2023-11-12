@@ -87,6 +87,30 @@ class ReferrerController extends Controller
 
     }
 
+
+     public function updateTransaction(Request $request, $id){
+
+        $referrer = Referrer::where('referral_code', $request->referrer_code)->first();
+
+        $product_cost = $request->product_cost;
+        $percentage = $request->percentage;
+
+        $amount_paid =  ($percentage / 100 * $product_cost);
+
+        $transaction = Transaction::where('id', $id)->first();
+        $transaction->product_cost = $product_cost;
+        $transaction->percentage = $percentage;
+        $transaction->paid = $amount_paid;
+        $transaction->user_id = $referrer->user_id;
+        $transaction->referrer_id = $referrer->id;
+        $transaction->status = $request->status;
+        $transaction->approved_by = auth()->user()->id;
+        $transaction->save();
+
+        return response()->json(compact('transaction'));
+
+    }
+
     public function allTransactions(Request $request){
 
         $transactions = Transaction::search($request->search)

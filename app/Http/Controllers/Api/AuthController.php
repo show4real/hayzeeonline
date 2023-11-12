@@ -44,8 +44,8 @@ class AuthController extends Controller
 
       $user = $referrer !== null ? User::where('id', $referrer->user_id)->first() : null;
 
-      if($user && $user->status == null){
-        $referrer->status = 1;
+      if($user && $user->verified == null){
+        $referrer->verified = 1;
         $referrer->save();
         
         $user->email_verified_at = now();

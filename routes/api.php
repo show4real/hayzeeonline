@@ -100,7 +100,8 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
         Route::post('referrer/approve', 'approve');
         Route::post('transactions', 'allTransactions');
         Route::post('add/transactions', 'addTransaction');
-          Route::post('delete/transaction/{id}', 'deleteTransaction');
+        Route::post('update/transaction/{id}', 'updateTransaction');
+        Route::post('delete/transaction/{id}', 'deleteTransaction');
 
         
     });

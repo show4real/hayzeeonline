@@ -23,6 +23,7 @@ class CreateReferrersTable extends Migration
             $table->string('referral_code')->nullable();
             $table->string('address')->nullable();
             $table->integer('status')->default(0);
+            $table->integer('verified')->default(0);
             $table->integer('approver')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->integer('user_id')->nullable();
