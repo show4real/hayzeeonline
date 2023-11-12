@@ -47,7 +47,7 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         $user = auth()->user();
-        if($user->verified !== 1){
+        if($user->email_verified_at == null){
              return response()->json(['error' => 'Unauthorized'], 401);
         }
        
