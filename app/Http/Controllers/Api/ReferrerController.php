@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Referrer;
 use App\Models\Transaction;
+use App\Models\User;
 
 class ReferrerController extends Controller
 {
