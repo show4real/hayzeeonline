@@ -37,6 +37,28 @@ class AuthController extends Controller
         ]);
     }
 
+    public function loginReferrer(Request $request)
+    {
+
+        $credentials = $request->only('email', 'password');
+
+
+        if (!$token = auth()->attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        $user = auth()->user();
+        if($user->verified !== 1){
+             return response()->json(['error' => 'Unauthorized'], 401);
+        }
+       
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
+
+        ]);
+    }
+
+
 
     public function verify(Request $request){
       $referrer = Referrer::where('referral_code', $request->referrer_code)->first();

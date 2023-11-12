@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\ReferrerController;
 Route::controller(AuthController::class)->group(function () {
     Route::post('signup', 'signup');
     Route::post('login', 'login');
+    Route::post('login/referrer', 'loginReferrer');
     Route::post('verify', 'verify');
 });
 
@@ -76,7 +77,7 @@ Route::controller(BlogController::class)->group(function () {
 Route::middleware(['auth:api', 'CheckReferrer'])->group(function () {
 
     Route::controller(ReferrerController::class)->group(function () {
-        Route::post('referrer/updateprofile', 'addProfile');
+        Route::post('referrer/update/profile', 'addProfile');
         Route::post('referrer/transactions', 'myTransactions');
     });
 
@@ -98,6 +99,7 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
         Route::post('allreferrers', 'allReferrers');
 
         Route::post('referrer/approve', 'approve');
+
         Route::post('transactions', 'allTransactions');
         Route::post('add/transactions', 'addTransaction');
         Route::post('update/transaction/{id}', 'updateTransaction');
