@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Referrer;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
+use App\Jobs\SendEmail;
  
 trait SignUpTrait
 {
@@ -49,20 +50,21 @@ trait SignUpTrait
              $name = $request->name;
                 $email = $request->email;
                 $subject = 'Hayzee Computer Resources Referral Registration';
+                 SendEmail::dispatch($referrer);
 
-             Mail::send(
-            'mail.verify',
-            [
-                'referrer' => $referrer,
-                'email' => $email
+        //      Mail::send(
+        //     'mail.verify',
+        //     [
+        //         'referrer' => $referrer,
+        //         'email' => $email
                
-            ],
-            function ($mail) use ($name, $email, $subject) {
-                $mail->from('test@hayzeeonline.com', 'Hayzee Computer Resources');
-                $mail->to($email, $name);
-                $mail->subject($subject);
-            }
-        );
+        //     ],
+        //     function ($mail) use ($name, $email, $subject) {
+        //         $mail->from('test@hayzeeonline.com', 'Hayzee Computer Resources');
+        //         $mail->to($email, $name);
+        //         $mail->subject($subject);
+        //     }
+        // );
         
         }
 
