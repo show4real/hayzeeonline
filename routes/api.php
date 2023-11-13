@@ -80,6 +80,8 @@ Route::middleware(['auth:api', 'CheckReferrer'])->group(function () {
         Route::post('referrer/update/profile', 'addProfile');
         Route::post('referrer/profile', 'referrerProfile');
         Route::post('referrer/transactions', 'myTransactions');
+        Route::post('referrer/dashboard', 'referrerDashboard');
+
     });
 
 });

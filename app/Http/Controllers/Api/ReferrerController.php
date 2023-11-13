@@ -139,7 +139,10 @@ class ReferrerController extends Controller
 
     public function myTransactions(Request $request){
 
-        $transactions = Transaction::where('user_id', auth()->user()->id)->paginate(10);
+        $transactions = Transaction::where('user_id', auth()->user()->id)
+        ->filter1($request->get('fromdate'))
+        ->filter2($request->get('todate'))
+        ->paginate(10);
         
         return response()->json(compact('transactions'));
     }
@@ -154,6 +157,25 @@ class ReferrerController extends Controller
             return response()->json(true);
         }
         return response()->json(['message' => 'transaction not found'], 404);
+    }
+
+
+    public function referrerDashboard(Request $request){
+
+        $earnings=Transaction::
+        where('user_id', auth()->user()->id)
+        ->where('status', 1)
+        ->get();
+        $total_earnings=0;
+        $total_transactions=count($earnings);
+        foreach($earnings as $earning){
+            
+            $earnings=$earning['paid'];
+             $total_earnings+=$earnings;
+             
+        }
+
+         return response()->json(compact('total_transactions', 'total_earnings'));
     }
 
 

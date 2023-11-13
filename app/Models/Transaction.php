@@ -68,4 +68,16 @@ class Transaction extends Model
                     });
     	});
     }
+
+    public function scopeFilter1($query, $filter){
+        if($filter != null){
+         return $query->where("created_at",'>',$filter)->latest();
+        }
+    }
+
+    public function scopeFilter2($query, $filter){
+        if($filter != null){
+         return $query->where("created_at",'<',$filter)->latest();
+        }
+    }
 }
