@@ -50,7 +50,8 @@ trait SignUpTrait
              $name = $request->name;
                 $email = $request->email;
                 $subject = 'Hayzee Computer Resources Referral Registration';
-                 SendEmail::dispatch($referrer);
+                
+                 SendEmail::dispatch(['referrer' => $referrer, 'user' => $user]);
 
         //      Mail::send(
         //     'mail.verify',

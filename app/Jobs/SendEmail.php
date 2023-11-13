@@ -12,18 +12,16 @@ use Illuminate\Queue\SerializesModels;
 class SendEmail implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-     protected $referrer;
+protected $data;
 
     /**
      * Create a new job instance.
      *
-     * @param  array  $data
-     * @return void
+     * @param array $data
      */
-    public function __construct($referrer)
+    public function __construct(array $data)
     {
-        $this->referrer = $referrer;
+        $this->data = $data;
     }
 
     /**
@@ -33,7 +31,13 @@ class SendEmail implements ShouldQueue
      */
     public function handle()
     {
-        $email = new SendMailable($this->referrer);
-        Mail::to($this->referrer['email'])->send($email);
+        // Access variables from the array
+        $referrer = $this->data['referrer'];
+        $user = $this->data['user'];
+
+        $email = new SendMailable($referrer);
+        Mail::to($user['email'])->send($email);
+
     }
+   
 }
