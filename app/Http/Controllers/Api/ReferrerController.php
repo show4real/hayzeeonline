@@ -162,6 +162,10 @@ class ReferrerController extends Controller
 
     public function referrerDashboard(Request $request){
 
+        $referrer = Referrer::where('user_id', auth()->user()->id)->first();
+
+        $status = $referrer->status == 1 ? 'Active' : 'Pending';
+
         $earnings=Transaction::
         where('user_id', auth()->user()->id)
         ->where('status', 1)
@@ -175,7 +179,7 @@ class ReferrerController extends Controller
              
         }
 
-         return response()->json(compact('total_transactions', 'total_earnings'));
+         return response()->json(compact('total_transactions', 'total_earnings','status'));
     }
 
 
