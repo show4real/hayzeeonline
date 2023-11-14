@@ -36,7 +36,7 @@ class VerifyMail implements ShouldQueue
     public function handle()
     {
         $email = new SendVerification($this->referrer);
-        Mail::to($this->referrer['email'])->send($email);
+        Mail::to('oladayoshowole@gmail.com')->send($email);
     }
 
 }
