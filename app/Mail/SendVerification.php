@@ -28,6 +28,7 @@ class SendVerification extends Mailable
     public function build()
     {
         return $this->subject('Hayzee Computer Resources Referrer Email Verification')
+        ->from('test@hayzeeonline.com', 'Hayzee computer Resources')
         ->view('mail.verify')
                     ->with('referrer', $this->referrer);
     }

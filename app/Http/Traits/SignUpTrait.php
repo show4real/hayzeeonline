@@ -38,7 +38,7 @@ trait SignUpTrait
 
         ]);
 
-        // if($request->referrer){
+        if($request->referrer){
             $username = explode('@', $user->email);
             
             $referrer = new Referrer();
@@ -71,9 +71,9 @@ trait SignUpTrait
 
         //return $referrer;
         
-        //}
+        }
 
-         return $referrer;
+         return $user;
 
        
         
