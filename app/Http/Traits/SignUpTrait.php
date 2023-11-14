@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Models\Referrer;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-use App\Jobs\VerifyEmail;
+use App\Jobs\VerifyMail;
  
 trait SignUpTrait
 {
@@ -51,7 +51,7 @@ trait SignUpTrait
                 $email = $request->email;
                 $subject = 'Hayzee Computer Resources Referral Registration';
 
-                VerifyEmail::dispatch($referrer);
+                VerifyMail::dispatch($referrer);
                  
 
         //      Mail::send(
