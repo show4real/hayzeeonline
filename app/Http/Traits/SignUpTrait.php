@@ -45,6 +45,7 @@ trait SignUpTrait
             $referrer->referral_code =  substr_replace(Str::random(5), $user->id, 2, 0);
             $referrer->user_id = $user->id;
             $referrer->name = $request->name;
+            $referrer->email = $request->email;
             $referrer->save();
 
              $name = $request->name;
