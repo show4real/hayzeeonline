@@ -64,7 +64,7 @@
     <?php
     if($referrer->status == 1){
     ?>
-    <h1> Account Approved Notification</h1>
+    <h1> Account Approval Notification</h1>
     <p>Your account has been approved.</p>
     <p>Welcome to Hayzee Computer Resources.<br/> </p>
     <p className="text-sm text-gray-600 mb-4">
@@ -94,7 +94,7 @@
       <p>This is an automated email. Please do not reply.</p>
       <div class="company-info">
         <p>Visit our website: <a href="http://hayzeeonline.com" class="company-link">hayzeeonline.com</a></p>
-        <p>Company: Hayzee Computer Resources</p>
+        <p>Hayzee Computer Resources</p>
       </div>
     </div>
   </div>
