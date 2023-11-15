@@ -40,7 +40,7 @@ class Referrer extends Model
             return $query->where(function ($q) use ($requestData, $searchQuery) {
                 foreach ($requestData as $field)
                     $q->orWhere($field, 'like', "%{$searchQuery}%");
-            })->orderByRaw("FIELD(availability,1) DESC")->orderBy("updated_at", "DESC");
+            })->orderBy("updated_at", "DESC");
         });
     }
 }
