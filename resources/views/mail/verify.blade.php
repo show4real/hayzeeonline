@@ -76,7 +76,7 @@
     <div class="container">
         <!-- Company logos -->
         <div class="logo">
-            <img src="{{ asset('logo/logo5.png') }}" alt="Company Logo">
+            <img src="https://hayzeeonline.com/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo5.4f8e477d.png&w=128&q=100" alt="Company Logo">
         </div>
 
         <!-- Header -->

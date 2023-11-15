@@ -21,6 +21,15 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
+     .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-width: 150px;
+            height: auto;
+        }
 
     h1 {
       color: #333;
@@ -49,11 +58,11 @@
 
 <body>
   <div class="container">
+      <div class="logo">
+            <img src="https://hayzeeonline.com/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo5.4f8e477d.png&w=128&q=100" alt="Company Logo">
+        </div>
     <?php
     if($referrer->status == 1){
-
-
-
     ?>
    <h1> Thanks for Signing Up!</h1>
    <p>Your account is currently under review. We will notify you once the necessary verification is completed.</p>
