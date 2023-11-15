@@ -147,7 +147,7 @@ class ReferrerController extends Controller
         $transactions = Transaction::search($request->search)
             ->referrer($request->referrer_id)
             ->with('referrer')
-            ->paginate(10);
+           ->paginate($request->rows, ['*'], 'page', $request->page);
     
         return response()->json(compact('transactions'));
     }
@@ -157,7 +157,7 @@ class ReferrerController extends Controller
         $transactions = Transaction::where('user_id', auth()->user()->id)
         ->filter1($request->get('fromdate'))
         ->filter2($request->get('todate'))
-        ->paginate(10);
+        ->paginate($request->rows, ['*'], 'page', $request->page);
         
         return response()->json(compact('transactions'));
     }
