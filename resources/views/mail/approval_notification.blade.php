@@ -94,7 +94,7 @@
       <p>This is an automated email. Please do not reply.</p>
       <div class="company-info">
         <p>Visit our website: <a href="http://hayzeeonline.com" class="company-link">hayzeeonline.com</a></p>
-        <p>Hayzee Computer Resources</p>
+        <p>Hayzee Computer Resources.</p>
       </div>
     </div>
   </div>
