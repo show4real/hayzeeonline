@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use App\Models\Referrer;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Jobs\ApprovalMail;
 
 class ReferrerController extends Controller
 {
@@ -113,6 +114,9 @@ class ReferrerController extends Controller
             $referrer->approver = auth()->user()->id;
 
             $referrer->save();
+
+            ApprovalMail::dispatch($referrer);
+            
 
             return response()->json(compact('referrer'));
         }
