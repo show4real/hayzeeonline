@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-
+use App\Models\Referrer;
 
 class UserController extends Controller
 {
@@ -31,7 +31,14 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
+        
+
         $user->delete();
+        $referrer = Referrer::where('user_id', $id)->first();
+
+        if($referrer){
+            $referrer->delete();
+        }
 
         return response()->json(true);
     }

@@ -33,15 +33,40 @@ class ReferrerController extends Controller
 
     }
 
-       public function deleteReferrer($id)
-    {
+    //    public function deleteReferrer($id)
+    // {
+    //     $referrer = Referrer::find($id);
+       
+
+    //     if ($referrer) {
+    //         $user = User::where('id', $referrer->user_id)->first();
+
+    //         $transactions = Transaction::where('referrer_id', $id)->get();
+           
+           
+    //         $referrer->delete();
+    //         $user->delete();
+    //         $transactions->delete();
+
+    //         return response()->json(true);
+    //     }
+    //     return response()->json(['message' => 'referrer not found'], 404);
+    // }
+    public function deleteReferrer($id){
+
         $referrer = Referrer::find($id);
 
         if ($referrer) {
+            
+            $referrer->user->delete();
+            $referrer->transactions()->delete();
+
            
             $referrer->delete();
+
             return response()->json(true);
         }
+
         return response()->json(['message' => 'referrer not found'], 404);
     }
 

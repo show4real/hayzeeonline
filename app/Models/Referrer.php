@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Referrer extends Model
 {
     use HasFactory;
@@ -15,6 +16,14 @@ class Referrer extends Model
     {
         return $this->belongsTo('App\Models\User', 'user_id');
     }
+
+
+     public function transactions()
+    {
+        return $this->hasMany('App\Models\Transaction', 'referrer_id');
+    }
+
+
 
      public function getEmailAttribute()
     {
