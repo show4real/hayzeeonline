@@ -33,6 +33,18 @@ class ReferrerController extends Controller
 
     }
 
+       public function deleteReferrer($id)
+    {
+        $referrer = Referrer::find($id);
+
+        if ($referrer) {
+           
+            $referrer->delete();
+            return response()->json(true);
+        }
+        return response()->json(['message' => 'referrer not found'], 404);
+    }
+
     public function referrerProfile(Request $request){
         $referrer = Referrer::where('user_id', auth()->user()->id)->first();
 

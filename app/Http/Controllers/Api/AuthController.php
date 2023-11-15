@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Traits\SignUpTrait;
 use App\Models\Referrer;
 use App\Models\User;
+use App\Jobs\ApprovalMail;
 
 
 class AuthController extends Controller
@@ -72,6 +73,8 @@ class AuthController extends Controller
         
         $user->email_verified_at = now();
         $user->save();
+
+        ApprovalMail::dispatch($referrer);
 
         return response()->json(compact('user'));
         

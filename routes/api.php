@@ -102,6 +102,7 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
         Route::post('allreferrers', 'allReferrers');
 
         Route::post('referrer/approve', 'approve');
+        Route::post('delete/referrer/{id}', 'deleteReferrer');
 
         Route::post('transactions', 'allTransactions');
         Route::post('add/transactions', 'addTransaction');
