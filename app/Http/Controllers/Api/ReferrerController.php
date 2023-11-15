@@ -19,7 +19,7 @@ class ReferrerController extends Controller
         $referrers = Referrer::with('user')
         ->search($request->search)
         ->latest()
-        ->paginate(10);
+       ->paginate($request->rows, ['*'], 'page', $request->page);
 
         return response()->json(compact('referrers'));
 
