@@ -64,15 +64,8 @@
     <?php
     if($referrer->status == 1){
     ?>
-   <h1> Thanks for Signing Up!</h1>
-   <p>Your account is currently under review. We will notify you once the necessary verification is completed.</p>
-    <p>This process may take up to 72 hours. Thank you for your patience.</p>
-
-    <?php
-    } else {
-    ?>
-   <h1> Account Approved Notification</h1>
-   <p>Your account has been approved.</p>
+    <h1> Account Approved Notification</h1>
+    <p>Your account has been approved.</p>
     <p>Welcome to Hayzee Computer Resources.<br/> </p>
     <p className="text-sm text-gray-600 mb-4">
               
@@ -83,6 +76,14 @@
                 Sign in here
               </a>
             </p>
+
+    <?php
+    } else {
+    ?>
+     <h1> Thanks for Signing Up!</h1>
+     <p>Your account is currently under review. We will notify you once the necessary verification is completed.</p>
+    <p>This process may take up to 72 hours. Thank you for your patience.</p>
+   
     <?php
     }
     ?>
