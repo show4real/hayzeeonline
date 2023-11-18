@@ -15,7 +15,7 @@ trait SignUpTrait
     public function addUser(Request $request)
     {
         $this->validate($request, [
-            'email' => 'required|unique:users,email',
+            'email' => 'required|email|unique:users,email',
         ]);
 
         $user = $this->createUser($request);
@@ -55,21 +55,7 @@ trait SignUpTrait
                 VerifyMail::dispatch($referrer);
                  
 
-        //      Mail::send(
-        //     'mail.verify',
-        //     [
-        //         'referrer' => $referrer,
-        //         'email' => $email
-               
-        //     ],
-        //     function ($mail) use ($name, $email, $subject) {
-        //         $mail->from('test@hayzeeonline.com', 'Hayzee Computer Resources');
-        //         $mail->to($email, $name);
-        //         $mail->subject($subject);
-        //     }
-        // );
-
-        //return $referrer;
+       
         
         }
 
