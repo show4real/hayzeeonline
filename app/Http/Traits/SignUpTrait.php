@@ -16,6 +16,7 @@ trait SignUpTrait
     {
         $this->validate($request, [
             'email' => 'required|email|unique:users,email',
+            'phone' => 'required|unique:users,phone',
         ]);
 
         $user = $this->createUser($request);
