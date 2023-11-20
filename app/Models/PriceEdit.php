@@ -9,7 +9,7 @@ class PriceEdit extends Model
 {
     use HasFactory;
 
-    protected $table = "price_edits";
+    protected $table = "priceedits";
 
     protected $fillable = ["percentage", "start_date", "end_date", "comment"];
 }
