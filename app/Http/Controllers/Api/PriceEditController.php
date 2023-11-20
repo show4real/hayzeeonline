@@ -29,7 +29,7 @@ class PriceEditController extends Controller
     }
 
 
-      public function deleteTransaction($id)
+      public function delete($id)
     {
         $price = PriceEdit::find($id);
 
