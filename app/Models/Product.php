@@ -53,8 +53,8 @@ class Product extends Model
 
    
    public function getNewpriceAttribute(){
-        $priceEdits = PriceEdit::where('date_from', '<=', $this->created_at)
-            ->where('date_to', '>=', $this->created_at)
+        $priceEdits = PriceEdit::where('start_date', '<=', $this->created_at)
+            ->where('end_date', '>=', $this->created_at)
             ->get();
 
         $adjustedPrice = $this->price;
