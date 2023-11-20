@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\YoutubeController;
 use App\Http\Controllers\Api\ReferrerController;
+use App\Http\Controllers\Api\PriceEditController;
 
 
 /*
@@ -98,6 +99,12 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
         Route::post('delete/user/{id}', 'delete');
     });
 
+     Route::controller(PriceEditController::class)->group(function () {
+
+       Route::post('update/price', 'create');
+    });
+
+
     Route::controller(ReferrerController::class)->group(function () {
         Route::post('referrers', 'referrers');
         Route::post('allreferrers', 'allReferrers');
@@ -109,6 +116,8 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
         Route::post('add/transactions', 'addTransaction');
         Route::post('update/transaction/{id}', 'updateTransaction');
         Route::post('delete/transaction/{id}', 'deleteTransaction');
+
+        
 
         
     });
