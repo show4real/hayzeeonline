@@ -65,7 +65,13 @@
     if($referrer->status == 1){
     ?>
     <h1> Account Approval Notification</h1>
-    <p>Your account has been approved.</p>
+    <h3>Thanks for Joining our Affiliate Market</h3>
+    <p>
+        
+        <b> Your account has been approved.</b>
+
+        Now you have the opportunity to share your referral code with friends and family. They can use it when placing an order.
+    </p>
     <p>Welcome to Hayzee Computer Resources.<br/> </p>
     <p className="text-sm text-gray-600 mb-4">
               
@@ -73,9 +79,10 @@
                 href="https://hayzeeonline-referral.hayzeeonline.com/auth/login"
                 className="text-blue-500 underline"
               >
-                Sign in here
+                Sign in to continue
               </a>
             </p>
+            
 
     <?php
     } else {

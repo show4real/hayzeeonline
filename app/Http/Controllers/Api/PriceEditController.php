@@ -12,7 +12,7 @@ class PriceEditController extends Controller
 
     public function index(Request $request){
 
-        $prices = PriceEdit::paginate(10);
+        $prices = PriceEdit::latest()->paginate(10);
         return response()->json(compact('prices'));
 
     }
