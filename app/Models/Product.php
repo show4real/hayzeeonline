@@ -52,19 +52,28 @@ class Product extends Model
     protected $appends = ['category', "stock", "image_hover", "new_price"];
 
    
-   public function getNewpriceAttribute(){
-        $priceEdits = PriceEdit::where('start_date', '<=', $this->created_at)
-            ->where('end_date', '>=', $this->created_at)
-            ->get();
+   public function getNewpriceAttribute()
+{
+    $existingEdits = PriceEdit::where('start_date', '<=', $this->created_at)
+        ->where('end_date', '>=', $this->created_at)
+        ->get();
 
-        $adjustedPrice = $this->price;
+    $adjustedPrice = $this->price;
 
-        foreach ($priceEdits as $priceEdit) {
-            $adjustedPrice = $adjustedPrice + ($adjustedPrice * $priceEdit->percentage / 100);
-        }
+    if ($existingEdits->isNotEmpty()) {
+        // Sort the existing edits by the start_date in descending order
+        $sortedEdits = $existingEdits->sortByDesc('start_date');
 
-        return $adjustedPrice;
+        // Get the latest (latter) entry
+        $latestEdit = $sortedEdits->first();
+
+        // Use $latestEdit->percentage for the new entry
+        $adjustedPrice = $adjustedPrice + ($adjustedPrice * $latestEdit->percentage / 100);
     }
+
+    return $adjustedPrice;
+}
+
 
 
 
