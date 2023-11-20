@@ -49,23 +49,27 @@ class Product extends Model
         'product_type'
     ];
 
-    protected $appends = ['category', "stock", "image_hover"];
+    protected $appends = ['category', "stock", "image_hover", "new_price"];
 
-    // ALTER TABLE products ADD FULLTEXT INDEX fulltext_index_name (name, description);
+   
+    public function getNewpriceAttribute(){
+        $priceEdits = $this->priceEdits;
 
+        $adjustedPrice = $this->price;
 
-//    public function scopeSearchAll($query, $filter)
-// {
-//     $searchQuery = trim($filter);
+        foreach ($priceEdits as $priceEdit) {
+            if ($priceEdit->date_from <= $this->created_at && $priceEdit->date_to >= $this->created_at) {
+                $adjustedPrice = $adjustedPrice + ($adjustedPrice * $priceEdit->percentage / 100);
+            }
+        }
 
-//     $query->when($filter != '', function ($query) use ($searchQuery) {
-//         return $query->select('*', DB::raw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE) as relevance_score"))
-//             ->when($searchQuery, function ($query) use ($searchQuery) {
-//                 return $query->whereRaw("MATCH(name) AGAINST('$searchQuery' IN BOOLEAN MODE)");
-//             })
-//             ->orderBy('relevance_score');
-//     });
-// }
+        return $adjustedPrice;
+    }
+
+    public function priceEdits()
+    {
+        return $this->hasMany(PriceEdit::class);
+    }
 
 
 
