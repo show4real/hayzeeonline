@@ -49,7 +49,7 @@ class Product extends Model
         'product_type'
     ];
 
-    protected $appends = ['category', "stock", "image_hover", "new_price"];
+    protected $appends = ['category', "stock", "image_hover"];
 
    
     // public function getNewpriceAttribute(){
