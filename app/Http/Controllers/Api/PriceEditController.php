@@ -21,12 +21,14 @@ class PriceEditController extends Controller
     public function create(Request $request){
 
         $price_edit = PriceEdit::updateOrCreate(
-            ['start_date' => $request->start_date, 'from_date' => $request->from_date],
+            ['start_date' => $request->start_date, 'end_date' => $request->end_date],
             ['percentage' => $request->percentage, 'comment' => $request->comment]
         );
 
         return response()->json(compact('price_edit'));
     }
+
+
 
 
     
