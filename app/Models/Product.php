@@ -52,24 +52,24 @@ class Product extends Model
     protected $appends = ['category', "stock", "image_hover", "new_price"];
 
    
-    public function getNewpriceAttribute(){
-        $priceEdits = $this->priceEdits;
+    // public function getNewpriceAttribute(){
+    //     $priceEdits = $this->priceEdits;
 
-        $adjustedPrice = $this->price;
+    //     $adjustedPrice = $this->price;
 
-        foreach ($priceEdits as $priceEdit) {
-            if ($priceEdit->date_from <= $this->created_at && $priceEdit->date_to >= $this->created_at) {
-                $adjustedPrice = $adjustedPrice + ($adjustedPrice * $priceEdit->percentage / 100);
-            }
-        }
+    //     foreach ($priceEdits as $priceEdit) {
+    //         if ($priceEdit->date_from <= $this->created_at && $priceEdit->date_to >= $this->created_at) {
+    //             $adjustedPrice = $adjustedPrice + ($adjustedPrice * $priceEdit->percentage / 100);
+    //         }
+    //     }
 
-        return $adjustedPrice;
-    }
+    //     return $adjustedPrice;
+    // }
 
-    public function priceEdits()
-    {
-        return $this->hasMany(PriceEdit::class);
-    }
+    // public function priceEdits()
+    // {
+    //     return $this->hasMany(PriceEdit::class);
+    // }
 
 
 
