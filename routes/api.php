@@ -103,6 +103,7 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
 
        Route::post('update/price', 'create');
        Route::post('prices', 'index');
+       Route::post('delete/price/{id}', 'delete');
     });
 
 

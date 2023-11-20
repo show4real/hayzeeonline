@@ -29,6 +29,19 @@ class PriceEditController extends Controller
     }
 
 
+      public function deleteTransaction($id)
+    {
+        $price = PriceEdit::find($id);
+
+        if ($price) {
+           
+            $price->delete();
+            return response()->json(true);
+        }
+        return response()->json(['message' => 'price not found'], 404);
+    }
+
+
 
 
     
