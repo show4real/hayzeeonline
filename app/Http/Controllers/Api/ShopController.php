@@ -33,8 +33,9 @@ class ShopController extends Controller
         })->paginate($request->rows);
 
          $youtube = Youtube::first()->youtubeid;
+         $notice = Notice::first()->notice;
 
-        return response()->json(compact('products', 'youtube'));
+        return response()->json(compact('products', 'youtube', 'notice'));
 
     }
 
@@ -61,7 +62,10 @@ class ShopController extends Controller
             ->inRandomOrder()
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
-          return response()->json(compact('products'));
+             $notice = Notice::first()->notice;
+
+
+          return response()->json(compact('products','notice'));
     }
 
     public function products(Request $request)
@@ -82,8 +86,10 @@ class ShopController extends Controller
     
 
         $youtube = Youtube::first()->youtubeid;
+         $notice = Notice::first()->notice;
 
-        return response()->json(compact('products', 'youtube'));
+
+        return response()->json(compact('products', 'youtube', 'notice'));
     }
 
     public function categoryProducts(Request $request)
@@ -107,8 +113,10 @@ class ShopController extends Controller
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
         $youtube = Youtube::first()->youtubeid;
+         $notice = Notice::first()->notice;
 
-        return response()->json(compact('products', 'youtube'));
+
+        return response()->json(compact('products', 'youtube', 'notice'));
     }
 
     public function show($slug)

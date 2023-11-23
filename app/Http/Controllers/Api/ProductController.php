@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductDescription;
 use App\Models\ProductImages;
 use App\Models\Youtube;
+use App\Models\Notice;
 
 class ProductController extends Controller
 {
@@ -30,8 +31,9 @@ class ProductController extends Controller
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
         $youtube = Youtube::first()->youtubeid;
+        $notice = Notice::first()->notice;
 
-        return response()->json(compact('products', 'youtube'));
+        return response()->json(compact('products', 'youtube','notice'));
     }
 
 

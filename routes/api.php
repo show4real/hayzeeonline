@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\YoutubeController;
 use App\Http\Controllers\Api\ReferrerController;
 use App\Http\Controllers\Api\PriceEditController;
+use App\Http\Controllers\Api\NoticeController;
 
 
 /*
@@ -167,5 +168,10 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
     Route::controller(YoutubeController::class)->group(function () {
         Route::post('youtubes', 'index');
         Route::post('store/youtube', 'addYoutube');
+    });
+
+    Route::controller(NoticeController::class)->group(function () {
+        Route::post('notice', 'index');
+        Route::post('store/notice', 'create');
     });
 });
