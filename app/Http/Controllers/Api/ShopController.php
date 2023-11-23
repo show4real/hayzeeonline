@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Youtube;
+use App\Models\Notice;
 
 class ShopController extends Controller
 {
