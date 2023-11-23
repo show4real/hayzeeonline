@@ -21,6 +21,7 @@ class NoticeController extends Controller
         $notice = Notice::first();
         $notice->notice = $request->notice;
         $notice->save();
+        return response()->json(compact('notice'));
     }
   
     
