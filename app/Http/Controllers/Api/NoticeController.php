@@ -19,7 +19,7 @@ class NoticeController extends Controller
     public function create(Request $request){
 
         $notice = Notice::first();
-        $notice->notice = $request->notice();
+        $notice->notice = $request->notice;
         $notice->save();
     }
   
