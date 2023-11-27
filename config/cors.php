@@ -25,7 +25,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://apiv2.hayzeeonline.com'],
 
     'allowed_origins_patterns' => ['*'],
 
