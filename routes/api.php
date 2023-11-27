@@ -32,44 +32,44 @@ use App\Http\Controllers\Api\PaymentController;
 Route::post('/initiate-payment', [PaymentController::class, 'initiatePayment']);
 Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymentCallback']);
 
-Route::controller(ReferrerController::class)->group(function () {
+Route::middleware(['Cors'])->controller(ReferrerController::class)->group(function () {
     Route::post('referrer/codes', 'referrerCode');
 });
 
 
 
-Route::controller(AuthController::class)->group(function () {
+Route::middleware(['Cors'])->controller(AuthController::class)->group(function () {
     Route::post('signup', 'signup');
     Route::post('login', 'login');
     Route::post('login/referrer', 'loginReferrer');
     Route::post('verify', 'verify');
 });
 
-Route::controller(CategoryController::class)->group(function () {
+Route::middleware(['Cors'])->controller(CategoryController::class)->group(function () {
     Route::post('user/categories', 'userCategories');
     Route::post('user/allcategories', 'index');
     Route::post('user/allcats', 'allCats');
     Route::get('show/category/{slug}', 'show');
 });
 
-Route::controller(BrandController::class)->group(function () {
+Route::middleware(['Cors'])->controller(BrandController::class)->group(function () {
 
     Route::post('user/allbrands', 'index');
     Route::get('show/brand/{id}', 'show');
 });
 
-Route::controller(OrderController::class)->group(function () {
+Route::middleware(['Cors'])->controller(OrderController::class)->group(function () {
     Route::post('store/order', 'addOrder');
 });
 
-Route::controller(ProductController::class)->group(function () {
+Route::middleware(['Cors'])->controller(ProductController::class)->group(function () {
 
     Route::post('user/product/images/{id}', 'productImages');
     Route::post('related/products/{id}', 'relatedProducts');
     Route::post('product/infos/{id}', 'productDescriptions');
 });
 
-Route::controller(ShopController::class)->group(function () {
+Route::middleware(['Cors'])->controller(ShopController::class)->group(function () {
     Route::post('products/trending', 'trending');
     Route::post('user/products', 'products');
     Route::post('search/products', 'searchProducts');
@@ -82,12 +82,12 @@ Route::controller(ShopController::class)->group(function () {
     Route::get('singleproduct/{product}', 'show');
 });
 
-Route::controller(BlogController::class)->group(function () {
+Route::middleware(['Cors'])->controller(BlogController::class)->group(function () {
     Route::post('user/allblogs', 'index');
     Route::get('blog/{product}', 'show');
 });
 
-Route::middleware(['auth:api', 'CheckReferrer'])->group(function () {
+Route::middleware(['auth:api', 'CheckReferrer', 'Cors'])->group(function () {
 
     Route::controller(ReferrerController::class)->group(function () {
         Route::post('referrer/update/profile', 'addProfile');
