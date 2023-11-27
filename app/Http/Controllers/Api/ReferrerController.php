@@ -26,12 +26,22 @@ class ReferrerController extends Controller
 
     }
 
+
+
      public function allReferrers(Request $request){
 
         $referrers = Referrer::with('user')->get();
 
         return response()->json(compact('referrers'));
 
+    }
+
+
+    public function referrerCode(Request $request){
+        $referrer_codes = Referrer::pluck('referral_code');
+
+        return response()->json(compact('referrer_codes'));
+        
     }
 
     //    public function deleteReferrer($id)

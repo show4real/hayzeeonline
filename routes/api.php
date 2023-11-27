@@ -32,6 +32,10 @@ use App\Http\Controllers\Api\PaymentController;
 Route::post('/initiate-payment', [PaymentController::class, 'initiatePayment']);
 Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymentCallback']);
 
+Route::controller(ReferrerController::class)->group(function () {
+    Route::post('referrer/codes', 'referrerCode');
+});
+
 
 
 Route::controller(AuthController::class)->group(function () {
