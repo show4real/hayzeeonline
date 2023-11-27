@@ -28,6 +28,10 @@ use App\Http\Controllers\Api\PaymentController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, Authorization, Accept,charset,boundary,Content-Length');
+header('Access-Control-Allow-Origin: *');
+
 
 Route::post('/initiate-payment', [PaymentController::class, 'initiatePayment']);
 Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymentCallback']);
