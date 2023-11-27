@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\YoutubeController;
 use App\Http\Controllers\Api\ReferrerController;
 use App\Http\Controllers\Api\PriceEditController;
 use App\Http\Controllers\Api\NoticeController;
+use App\Http\Controllers\Api\PaymentController;
+
 
 
 /*
@@ -26,6 +28,11 @@ use App\Http\Controllers\Api\NoticeController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::post('/initiate-payment', [PaymentController::class, 'initiatePayment']);
+Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymentCallback']);
+
+
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('signup', 'signup');
