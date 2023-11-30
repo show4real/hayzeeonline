@@ -56,6 +56,8 @@ class PaymentController extends Controller
                 'user_id' => $user->id,
                 'total_price' => $request->total_price,
                 'description' => $request->description,
+                'payment_reference' => $request->payment_reference,
+                'payment_status' => 1,
                 'status' => 0,
             ]);
 
