@@ -39,8 +39,16 @@ class PaymentController extends Controller
 
     public function completeOrder(Request $request)
     {
-        $paymentReference = $request->input('payment_reference');
-        $paymentDetails = Paystack::getPaymentData($paymentReference);
+        $paymentReference = $request->payment_reference;
+        $data = array(
+        "reference" => $request->payment_reference,
+        "email" => $request->email,
+        );
+
+
+        $paymentDetails = Paystack::getPaymentData($data);
+
+
         if ($paymentDetails['data']['status'] === 'success') {
 
             $user = User::firstOrCreate(['email' => $request->email], [
