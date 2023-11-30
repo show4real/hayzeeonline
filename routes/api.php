@@ -32,6 +32,8 @@ use App\Http\Controllers\Api\PaymentController;
 
 Route::post('/initiate-payment', [PaymentController::class, 'initiatePayment']);
 Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymentCallback']);
+Route::post('/complete/order', [PaymentController::class, 'completeOrder']);
+
 
 Route::controller(ReferrerController::class)->group(function () {
     Route::post('referrer/codes', 'referrerCode');
@@ -62,6 +64,7 @@ Route::controller(BrandController::class)->group(function () {
 Route::controller(OrderController::class)->group(function () {
     Route::post('store/order', 'addOrder');
 });
+
 
 Route::controller(ProductController::class)->group(function () {
 

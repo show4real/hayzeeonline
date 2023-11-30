@@ -17,6 +17,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $orders = Order::searchAll($request->search)
+            ->latest()
             ->with('user')
             ->with('products')
             ->paginate(100);
