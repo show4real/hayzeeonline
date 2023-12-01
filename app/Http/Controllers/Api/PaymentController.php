@@ -77,6 +77,7 @@ class PaymentController extends Controller
              $price = $request->total_price;
              $discount = $request->discount == true ? 0.01*$price : 0;
              $amount = $price - $discount;
+           
 
             $user = User::firstOrCreate(['email' => $request->email], [
                 'phone' => $request->phone,
@@ -93,6 +94,7 @@ class PaymentController extends Controller
                 'discount' => $discount,
                 'description' => $request->description,
                 'payment_reference' => $reference,
+                'referrer_code' => $request->referrer_code,
                 'payment_status' => 1,
                 'status' => 0,
             ]);
