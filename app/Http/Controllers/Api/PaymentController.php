@@ -25,7 +25,7 @@ class PaymentController extends Controller
         $reference = time();
 
         $data = array(
-        "amount" => $request->amount,
+        "amount" => $request->amount*100,
         "reference" => $reference,
         "email" => $request->email,
         "currency" => "NGN",
