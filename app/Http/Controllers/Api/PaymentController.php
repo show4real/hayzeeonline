@@ -64,17 +64,11 @@ class PaymentController extends Controller
 
         curl_close($curl);
         
-        // if ($err) {
-        //     echo "cURL Error #:" . $err;
-        // } else {
-        //     echo $response;
-        // }
-
-        //dd($response);
+      
         $data = json_decode($response);
 
 
-        if ($data && $data['data']['status'] === 'success') {
+        if ($data && $data->data->status === 'success') {
 
             $user = User::firstOrCreate(['email' => $request->email], [
                 'phone' => $request->phone,
