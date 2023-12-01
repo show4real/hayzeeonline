@@ -68,6 +68,8 @@ class PaymentController extends Controller
         //     echo $response;
         // }
 
+        dd($response);
+
 
         if ($response['data']['status'] === 'success') {
 
