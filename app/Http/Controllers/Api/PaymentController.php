@@ -75,7 +75,7 @@ class PaymentController extends Controller
         if ($data && $data->data->status === 'success') {
 
              $price = $request->total_price;
-             $discount = $request->discount === true ? 0.01*$price : 0;
+             $discount = $request->referrer_code !== null ? 0.01*$price : 0;
              $amount = $price - $discount;
            
 
