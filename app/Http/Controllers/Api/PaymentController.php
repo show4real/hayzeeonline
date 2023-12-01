@@ -59,8 +59,7 @@ class PaymentController extends Controller
         ));
 
         
-        
-        $response = json_decode($curl_exec($curl), true);
+        $response = curl_exec($curl);
         $err = curl_error($curl);
 
         curl_close($curl);
@@ -74,7 +73,7 @@ class PaymentController extends Controller
         //dd($response);
 
 
-        if ($response && $response['data']['status'] === 'success') {
+        if ($response->status == true) {
 
             $user = User::firstOrCreate(['email' => $request->email], [
                 'phone' => $request->phone,
