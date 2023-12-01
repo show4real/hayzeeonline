@@ -11,7 +11,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'total_price', 'status', 'description'];
+    protected $fillable = ['user_id', 'total_price', 'status', 'description','payment_reference'];
     
      public function products(): HasMany
     {
