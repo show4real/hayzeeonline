@@ -57,8 +57,10 @@ class PaymentController extends Controller
             "Cache-Control: no-cache",
             ),
         ));
+
         
-        $response = curl_exec($curl);
+        
+        $response = json_decode($curl_exec($curl), true);
         $err = curl_error($curl);
 
         curl_close($curl);
