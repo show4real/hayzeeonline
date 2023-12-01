@@ -92,7 +92,9 @@ class OrderController extends Controller
 
         if ($order) {
             $order->delete();
-            $orderProduct->delete();
+            if($orderProduct){
+                $orderProduct->delete();
+            }
             return response()->json(true);
         }
         return response()->json(['message' => 'order not found'], 404);
