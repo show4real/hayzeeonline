@@ -42,9 +42,10 @@ class PaymentController extends Controller
         $reference = $request->payment_reference;
 
         $curl = curl_init();
+         //CURLOPT_URL => "https://api.paystack.co/transaction/verify/" . rawurlencode($reference),
   
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://api.paystack.co/transaction/verify/:".$reference,
+            CURLOPT_URL => "https://api.paystack.co/transaction/verify/".$reference,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
