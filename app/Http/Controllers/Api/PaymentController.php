@@ -69,10 +69,10 @@ class PaymentController extends Controller
         //     echo $response;
         // }
 
-        dd($response);
+        //dd($response);
 
 
-        if ($response['data']['status'] === 'success') {
+        if ($response && $response['data']['status'] === 'success') {
 
             $user = User::firstOrCreate(['email' => $request->email], [
                 'phone' => $request->phone,
@@ -87,7 +87,7 @@ class PaymentController extends Controller
                 'user_id' => $user->id,
                 'total_price' => $request->total_price,
                 'description' => $request->description,
-                'payment_reference' => $request->payment_reference,
+                'payment_reference' => $reference,
                 'payment_status' => 1,
                 'status' => 0,
             ]);
