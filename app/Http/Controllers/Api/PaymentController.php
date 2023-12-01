@@ -23,9 +23,12 @@ class PaymentController extends Controller
     public function initiatePayment(Request $request)
     {
         $reference = time();
+        $discount = $request->discount;
+        $price = $request->amount;
+        $amount = $discount == true ? $price-(0.01*$price) : $price;
 
         $data = array(
-        "amount" => $request->amount*100,
+        "amount" => $amount*100,
         "reference" => $reference,
         "email" => $request->email,
         "currency" => "NGN",
