@@ -74,6 +74,10 @@ class PaymentController extends Controller
 
         if ($data && $data->data->status === 'success') {
 
+             $price = $request->total_price;
+             $discount = $request->discount == true ? 0.01*$price : 0;
+             $amount = $price - $discount;
+
             $user = User::firstOrCreate(['email' => $request->email], [
                 'phone' => $request->phone,
                 'name' => $request->name,
@@ -85,7 +89,8 @@ class PaymentController extends Controller
 
             $order = Order::create([
                 'user_id' => $user->id,
-                'total_price' => $request->total_price,
+                'total_price' => $amount,
+                'discount' => $discount,
                 'description' => $request->description,
                 'payment_reference' => $reference,
                 'payment_status' => 1,
