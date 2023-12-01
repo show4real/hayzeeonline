@@ -71,9 +71,10 @@ class PaymentController extends Controller
         // }
 
         //dd($response);
+        $data = json_decode($response);
 
 
-        if ($response->status == true) {
+        if ($data && $data['data']['status'] === 'success') {
 
             $user = User::firstOrCreate(['email' => $request->email], [
                 'phone' => $request->phone,
@@ -110,7 +111,7 @@ class PaymentController extends Controller
 
         } else {
                 
-            return response()->json(['message' => 'Payment failed', 'data' => $err], 422);
+            return response()->json(['message' => 'Payment failed', 'data' => 'Payment not verified'], 422);
         }
     }
 }
