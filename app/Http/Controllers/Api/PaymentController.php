@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Redirect;
 use App\Models\Order;
+use App\Models\OrderProduct;
 use App\Models\User;
 use Paystack;
 
