@@ -24,7 +24,7 @@ class PaymentController extends Controller
     {
         $reference = time();
         $discount = $request->discount;
-        $price = $request->amount + $request->pickup;
+        $price = $request->amount + $request->pickup_charges;
        
         $amount = $discount == true ? $price-(0.01*$price) : $price;
 
