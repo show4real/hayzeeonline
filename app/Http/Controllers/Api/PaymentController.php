@@ -24,7 +24,8 @@ class PaymentController extends Controller
     {
         $reference = time();
         $discount = $request->discount;
-        $price = $request->amount;
+        $price = $request->amount + $request->pickup;
+       
         $amount = $discount == true ? $price-(0.01*$price) : $price;
 
         $data = array(
@@ -91,6 +92,7 @@ class PaymentController extends Controller
             $order = Order::create([
                 'user_id' => $user->id,
                 'total_price' => $amount,
+                'pickup' => $request->pickup,
                 'discount' => $discount,
                 'description' => $request->description,
                 'payment_reference' => $reference,
