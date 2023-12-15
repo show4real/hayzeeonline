@@ -83,7 +83,7 @@ Route::controller(ShopController::class)->group(function () {
     Route::post('laptop_products', 'laptopProducts');
 
     Route::post('category/products', 'categoryProducts');
-    Route::get('singleproduct/{product}', 'show');
+    Route::get('singleproduct/{slug}', 'show');
 });
 
 Route::controller(BlogController::class)->group(function () {

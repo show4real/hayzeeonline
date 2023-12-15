@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <input type="text" id="password" placeholder="enter password">
+    <div id="password-error" style="color:red"></div>
+
+    <button onclick="myData()">submit</button>
+
+
+    <script>
+
+        function myData() {
+            var password = document.getElementById('password').value;
+
+            // console.log(password.length);
+
+            if (password.length < 5) {
+
+                document.getElementById('password-error').innerHTML = "Password must be greater than 4 characters";
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
