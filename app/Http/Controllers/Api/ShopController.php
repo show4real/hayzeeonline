@@ -123,6 +123,9 @@ class ShopController extends Controller
     public function show($slug)
     {
         $product = Product::where('slug', $slug)->first();
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
         return response()->json(compact('product'));
     }
 
