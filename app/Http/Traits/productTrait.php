@@ -105,6 +105,8 @@ trait productTrait
     public function updateProduct($request, $product, $imageName)
     {
 
+        $name = $product->name;
+
         $imageUrl = URL::asset('images/' . $imageName);
         // $product->update([
         //     'name' => $request['name'],
@@ -133,7 +135,7 @@ trait productTrait
         $product->ram = $request['ram'];
         $product->storage = $request['storage'];
         $product->processor = $request['processor'];
-        $product->slug = $this->createSlug($request['name']);
+        //$product->slug = $this->createSlug($request['name']);
         $product->image = $imageUrl;
         $product->other_sales = $request['other_sales'];
         $product->created_at = now();
