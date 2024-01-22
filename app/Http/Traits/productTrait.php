@@ -119,6 +119,7 @@ trait productTrait
             $productData
         );
 
+
         if (count($data->labels) > 0) {
             for ($i = 0; $i < count($data->labels); $i++) {
                 $productInfo = new ProductDescription();
