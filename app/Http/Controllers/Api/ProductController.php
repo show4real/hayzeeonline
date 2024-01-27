@@ -52,10 +52,10 @@ class ProductController extends Controller
         $product = $this->create($request, $imageName);
 
         if ($product) {
-            if($product->created_at !== $product->updated_at){
+            // if($product->created_at !== $product->updated_at){
                 
-                $this->deletePreviousFile($product->id);
-            }
+            //     $this->deletePreviousFile($product->id);
+            // }
             $this->upload($images, $rotations, $product->id);
             $this->singleUpload($images[0], $imageName, $rotations[0]);
         }

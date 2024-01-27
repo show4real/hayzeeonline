@@ -72,52 +72,52 @@ trait productTrait
 
         // ]);
 
-        // $imageUrl = URL::asset('images/' . $imageName);
-        // $product = new Product();
-        // $product->name = $data['name'];
-        // $product->description = $data['description'];
-        // $product->product_type = $data['product_type'];
-        // $product->price = $data['price'];
-        // $product->other_sales = $data['other_sales'];
-        // $product->availability = $data['availability'];
-        // $product->category_id = $data['category'];
-        // $product->brand_id = $data['brand'];
-        // $product->ram = $data['ram'];
-        // $product->storage = $data['storage'];
-        // $product->processor = $data['processor'];
-        // $product->slug = $this->createSlug($data['name']);
-        // $product->image = $imageUrl;
-        // $product->save();
+        $imageUrl = URL::asset('images/' . $imageName);
+        $product = new Product();
+        $product->name = $data['name'];
+        $product->description = $data['description'];
+        $product->product_type = $data['product_type'];
+        $product->price = $data['price'];
+        $product->other_sales = $data['other_sales'];
+        $product->availability = $data['availability'];
+        $product->category_id = $data['category'];
+        $product->brand_id = $data['brand'];
+        $product->ram = $data['ram'];
+        $product->storage = $data['storage'];
+        $product->processor = $data['processor'];
+        $product->slug = $this->createSlug($data['name']);
+        $product->image = $imageUrl;
+        $product->save();
 
         $imageUrl = URL::asset('images/' . $imageName);
 
-        $productData = [
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'product_type' => $data['product_type'],
-            'price' => $data['price'],
-            'other_sales' => $data['other_sales'],
-            'availability' => $data['availability'],
-            'category_id' => $data['category'],
-            'brand_id' => $data['brand'],
-            'ram' => $data['ram'],
-            'storage' => $data['storage'],
-            'processor' => $data['processor'],
-            'slug' => $this->createSlug($data['name']),
-            'image' => $imageUrl,
-        ];
+        // $productData = [
+        //     'name' => $data['name'],
+        //     'description' => $data['description'],
+        //     'product_type' => $data['product_type'],
+        //     'price' => $data['price'],
+        //     'other_sales' => $data['other_sales'],
+        //     'availability' => $data['availability'],
+        //     'category_id' => $data['category'],
+        //     'brand_id' => $data['brand'],
+        //     'ram' => $data['ram'],
+        //     'storage' => $data['storage'],
+        //     'processor' => $data['processor'],
+        //     'slug' => $this->createSlug($data['name']),
+        //     'image' => $imageUrl,
+        // ];
 
-        $product = Product::updateOrCreate(
-            [
-                'name' => $data['name'],
-                'ram' => $data['ram'],
-                'category_id' => $data['category'],
-                'brand_id' => $data['brand'],
-                'processor' => $data['processor'],
-                'storage' => $data['storage'],
-            ],
-            $productData
-        );
+        // $product = Product::updateOrCreate(
+        //     [
+        //         'name' => $data['name'],
+        //         'ram' => $data['ram'],
+        //         'category_id' => $data['category'],
+        //         'brand_id' => $data['brand'],
+        //         'processor' => $data['processor'],
+        //         'storage' => $data['storage'],
+        //     ],
+        //     $productData
+        // );
 
 
         if (count($data->labels) > 0) {
