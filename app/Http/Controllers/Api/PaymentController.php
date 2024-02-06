@@ -73,7 +73,7 @@ class PaymentController extends Controller
         $data = json_decode($response);
 
 
-        if ($data && $data->data->status === 'success') {
+        //if ($data && $data->data->status === 'success') {
 
              $price = $request->total_price;
              $discount = $request->referrer_code !== null ? 0.005*$price : 0;
@@ -116,9 +116,9 @@ class PaymentController extends Controller
                 
                 return response()->json(['message' => 'Payment successful', 'data' => $order]);
 
-        } else {
+        // } else {
                 
-            return response()->json(['message' => 'Payment failed', 'data' => 'Payment not verified'], 422);
-        }
+        //     return response()->json(['message' => 'Payment failed', 'data' => 'Payment not verified'], 422);
+        // }
     }
 }
