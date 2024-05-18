@@ -42,14 +42,7 @@ class ShopController extends Controller
 
     public function quickProductSearch(Request $request){
         $products = Product::search($request->search_all)
-        ->query(function($query) use ($request) {
-            return $query
-            ->brand($request->brand)
-            ->category($request->category)
-            ->storage($request->storages)
-            ->processor($request->processors)
-            ->ram($request->rams);
-        })->get();
+        ->take(12)->get();
 
         return response()->json(compact('products'));
 
