@@ -49,7 +49,7 @@ class ShopController extends Controller
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams);
-        })->take(12)->get();
+        })->get();
 
         return response()->json(compact('products'));
 
