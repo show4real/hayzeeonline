@@ -49,11 +49,11 @@ trait SignUpTrait
             $referrer->email = $request->email;
             $referrer->save();
 
-             $name = $request->name;
-                $email = $request->email;
-                $subject = 'Hayzee Computer Resources Referral Registration';
+            $name = $request->name;
+            $email = $request->email;
+            $subject = 'Hayzee Computer Resources Referral Registration';
 
-                VerifyMail::dispatch($referrer);
+            VerifyMail::dispatch($referrer);
                  
 
        
