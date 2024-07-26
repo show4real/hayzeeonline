@@ -35,8 +35,6 @@ class ShopController extends Controller
             ->ram($request->rams)
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
-            ->orderByRaw("availability = 1 DESC")
-            ->inRandomOrder()
             ->paginate($request->rows);
 
 
@@ -49,7 +47,7 @@ class ShopController extends Controller
 
     public function quickProductSearch(Request $request){
         $products = Product::search($request->search_all)
-        ->take(12)->get();
+        ->take(10)->get();
 
         return response()->json(compact('products'));
 
