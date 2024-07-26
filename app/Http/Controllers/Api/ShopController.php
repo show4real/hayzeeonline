@@ -23,7 +23,15 @@ class ShopController extends Controller
 
     public function searchProducts(Request $request){
         $products = Product::search($request->search_all)
-            ->paginate($request->rows);
+        ->query(function($query) use ($request) {
+            return $query
+            ->brand($request->brand)
+            ->category($request->category)
+            ->storage($request->storages)
+            ->processor($request->processors)
+            ->ram($request->rams)
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all);
+        })->paginate($request->rows);
 
          $youtube = Youtube::first()->youtubeid;
          $notice = Notice::first()->notice;
