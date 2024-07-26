@@ -23,13 +23,7 @@ class ShopController extends Controller
 
     public function searchProducts(Request $request){
         $products = Product::search($request->search_all)
-        ->orderByRaw("availability = 1 DESC")
-        ->brand($request->brand)
-        ->category($request->category)
-        ->storage($request->storages)
-        ->processor($request->processors)
-        ->ram($request->rams)
-        ->paginate($request->rows);
+            ->paginate($request->rows);
 
          $youtube = Youtube::first()->youtubeid;
          $notice = Notice::first()->notice;
@@ -50,7 +44,7 @@ class ShopController extends Controller
     public function laptopProducts(Request $request){
 
         $products = Product::where('category_id', [26,27,28,29,30,38])
-            ->search($request->search_all)
+            ->searchAll($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
@@ -59,6 +53,7 @@ class ShopController extends Controller
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
+            ->inRandomOrder()
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
              $notice = Notice::first()->notice;
