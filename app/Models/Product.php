@@ -28,12 +28,6 @@ class Product extends Model
             'description' => $this->description,
             'price' => $this->price,
             'availability' => $this->availability,
-            'brand' => $this->brand_id,
-            'category' => $this->category_id,
-            'storage' => $this->storage,
-            'processor' => $this->processor,
-            'ram' => $this->ram
-
             // Add other searchable fields here.
         ];
     }
