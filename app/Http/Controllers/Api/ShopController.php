@@ -22,16 +22,23 @@ class ShopController extends Controller
     }
 
     public function searchProducts(Request $request){
-        $products = Product::search($request->search_all)
-        ->query(function($query) use ($request) {
-            return $query
+
+        $searchTerm = $request->input('q');
+        $searchResults = Product::search($request->search_all)->get();
+        $ids = $searchResults->pluck('id');
+
+         $products = Product::whereIn('id', $ids)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
-            ->filterByPrice($request->price[0], $request->price[1], $request->search_all);
-        })->paginate($request->rows);
+            ->sort($request->sort)
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+            ->orderByRaw("availability = 1 DESC")
+            ->inRandomOrder()
+            ->paginate($request->rows);
+
 
          $youtube = Youtube::first()->youtubeid;
          $notice = Notice::first()->notice;
@@ -42,7 +49,6 @@ class ShopController extends Controller
 
     public function quickProductSearch(Request $request){
         $products = Product::search($request->search_all)
-        ->orderByRaw("availability = 1 DESC")
         ->take(12)->get();
 
         return response()->json(compact('products'));
