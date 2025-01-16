@@ -115,10 +115,5 @@ class PaymentController extends Controller
             }
                 
                 return response()->json(['message' => 'Payment successful', 'data' => $order]);
-
-        // } else {
-                
-        //     return response()->json(['message' => 'Payment failed', 'data' => 'Payment not verified'], 422);
-        // }
     }
 }
