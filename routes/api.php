@@ -34,6 +34,14 @@ Route::post('/initiate-payment', [PaymentController::class, 'initiatePayment']);
 Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymentCallback']);
 Route::post('complete/order', [PaymentController::class, 'completeOrder']);
 
+Route::get('/configure-meilisearch', function () {
+    $client = new MeiliSearch\Client(env('MEILISEARCH_HOST'), env('MEILISEARCH_KEY'));
+    $index = $client->index('product_index');
+    $index->updateSortableAttributes(['available']);
+    
+    return 'MeiliSearch sortable attributes configured.';
+});
+
 
 Route::controller(ReferrerController::class)->group(function () {
     Route::post('referrer/codes', 'referrerCode');
