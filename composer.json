@@ -9,11 +9,13 @@
         "algolia/algoliasearch-client-php": "^3.4",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
+        "http-interop/http-factory-guzzle": "^1.2",
         "intervention/image": "^2.7",
         "laravel/framework": "^8.0",
         "laravel/sanctum": "^2.11",
         "laravel/scout": "^9.8",
         "laravel/tinker": "^2.5",
+        "meilisearch/meilisearch-php": "^1.12",
         "tymon/jwt-auth": "^1.0",
         "unicodeveloper/laravel-paystack": "1.0.*"
     },
@@ -60,7 +62,10 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true
