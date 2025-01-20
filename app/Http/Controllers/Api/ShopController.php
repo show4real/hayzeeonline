@@ -47,8 +47,7 @@ class ShopController extends Controller
 
     public function quickProductSearch(Request $request){
         $products = Product::search($request->search_all)
-        ->orderBy('availability', 'desc')
-        ->take(10)->get();
+        ->orderBy('availability', 'desc')->get();
 
         return response()->json(compact('products'));
 
