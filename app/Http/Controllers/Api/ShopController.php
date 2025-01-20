@@ -24,7 +24,7 @@ class ShopController extends Controller
     public function searchProducts(Request $request){
 
         $searchTerm = $request->input('q');
-        $searchResults = Product::search($request->search_all)->orderBy('availability', 'desc')->get();
+        $searchResults = Product::search($request->search_all)->take(100)->get();
         $ids = $searchResults->pluck('id');
 
          $products = Product::whereIn('id', $ids)
