@@ -35,7 +35,7 @@ class ShopController extends Controller
             ->ram($request->rams)
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
-            ->paginate($request->rows);
+            ->paginate(1000);
 
 
          $youtube = Youtube::first()->youtubeid;
