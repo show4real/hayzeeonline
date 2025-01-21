@@ -24,7 +24,7 @@ class ShopController extends Controller
     public function searchProducts(Request $request){
 
         $searchTerm = $request->input('q');
-        $searchResults = Product::search($request->search_all)->take(2000)->get();
+        $searchResults = Product::search($request->search_all)->take(500)->get();
         $ids = $searchResults->pluck('id');
 
          $products = Product::whereIn('id', $ids)
@@ -46,7 +46,7 @@ class ShopController extends Controller
     }
 
     public function quickProductSearch(Request $request){
-        $products = Product::search($request->search_all)->take(2000)->get();
+        $products = Product::search($request->search_all)->take(500)->get();
 
         return response()->json(compact('products'));
 
