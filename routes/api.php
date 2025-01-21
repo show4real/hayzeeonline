@@ -36,11 +36,9 @@ Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymen
 Route::post('complete/order', [PaymentController::class, 'completeOrder']);
 
 Route::get('/configure-meilisearch', function () {
-    // Replace 'http://127.0.0.1:7700' with your MeiliSearch host if different
     $client = new Client('http://195.35.48.107:7700', null); 
-    $index = $client->index('product_index'); // Replace 'posts' with your actual index name
+    $index = $client->index('product_index');
 
-    // Set 'available' as a sortable attribute
     $index->updateSortableAttributes(['availability']);
 
     return 'MeiliSearch sortable attributes configured.';
