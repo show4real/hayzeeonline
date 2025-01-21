@@ -46,7 +46,7 @@ class ShopController extends Controller
     }
 
     public function quickProductSearch(Request $request){
-        $products = Product::search($request->search_all)->take(500)->get();
+        $products = Product::search($request->search_all)->take(10)->get();
 
         return response()->json(compact('products'));
 
