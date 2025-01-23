@@ -39,7 +39,8 @@ Route::get('/configure-meilisearch', function () {
     $client = new Client('http://195.35.48.107:7700', null); 
     $index = $client->index('product_index');
 
-    $index->updateSortableAttributes(['availability']);
+    //$index->updateSortableAttributes(['availability']);
+    $index->updateFilterableAttributes(['availability']);
 
     return 'MeiliSearch sortable attributes configured.';
 });
