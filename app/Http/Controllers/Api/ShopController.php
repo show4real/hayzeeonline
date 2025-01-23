@@ -48,7 +48,7 @@ class ShopController extends Controller
     public function quickProductSearch(Request $request){
         
             $products = Product::search($request->search_all, function ($meilisearch, $query, $options) {
-            //$options['filter'] = 'availability = 1';
+            $options['filter'] = 'availability = 1';
             $options['sort'] = ['availability:desc'];
             return $meilisearch->search($query, $options);
         })
