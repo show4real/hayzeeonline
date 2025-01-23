@@ -46,16 +46,26 @@ class ShopController extends Controller
     }
 
     public function quickProductSearch(Request $request){
-        
-            $products = Product::search($request->search_all, function ($meilisearch, $query, $options) {
-            $options['filter'] = 'availability = 1';
-            $options['sort'] = ['availability:desc'];
-            return $meilisearch->search($query, $options);
-        })
-        ->take(10)
-        ->get();
-        $count = count($products);
-        return response()->json(compact('products','count'));
+
+       $available = Product::search($request->search_all)
+            ->where('availability', 1)
+            ->take(10)
+            ->get();
+
+        $sort = Product::search($request->search_all)
+            ->orderBy('availability', 'desc')
+            ->take(10)
+            ->get();
+
+        // Combine the results with $available taking priority
+        $products = $available->merge($sort)
+            ->unique('id') // Remove duplicates
+            ->values();    // Reindex the collection
+
+        // Optionally limit the results to 10
+        $products = $products->take(10);
+
+        return response()->json(compact('products'));
 
     }
 
