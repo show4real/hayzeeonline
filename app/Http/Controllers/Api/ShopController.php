@@ -69,6 +69,30 @@ class ShopController extends Controller
 
     }
 
+    public function searchAllProducts(Request $request){
+
+       $available = Product::search($request->search_all)
+            ->where('availability', 1)
+            ->take(50)
+            ->get();
+
+        $sort = Product::search($request->search_all)
+            ->orderBy('availability', 'desc')
+            ->take(50)
+            ->get();
+
+        // Combine the results with $available taking priority
+        $products = $available->merge($sort)
+            ->unique('id') // Remove duplicates
+            ->values();    // Reindex the collection
+
+        // Optionally limit the results to 10
+        $products = $products->take(50);
+
+        return response()->json(compact('products'));
+
+    }
+
     public function laptopProducts(Request $request){
 
         $products = Product::where('category_id', [26,27,28,29,30,38])
