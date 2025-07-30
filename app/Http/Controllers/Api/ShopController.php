@@ -127,7 +127,7 @@ class ShopController extends Controller
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
-            ->inRandomOrder()
+            //->inRandomOrder()
             ->paginate($request->rows, ['*'], 'page', $request->page);
     
 
