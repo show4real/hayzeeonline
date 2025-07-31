@@ -122,7 +122,7 @@ class Product extends Model
         } else if ($filter == 'date-asc') {
             return $query->orderBy('created_at', 'asc');
         }
-        return $query;
+        return $query->latest();
     }
 
 
