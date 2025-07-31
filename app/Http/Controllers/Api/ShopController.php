@@ -165,6 +165,24 @@ class ShopController extends Controller
         return response()->json(compact('products', 'youtube', 'notice'));
     }
 
+    public function shopProducts(Request $request)
+    {
+
+
+        $products = Product::
+            searchAll($request->search_all)
+            ->brand($request->brand)
+            ->category($request->category)
+            ->sort($request->sorting)
+            ->storage($request->storages)
+            ->processor($request->processors)
+            ->ram($request->rams)
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+            ->paginate($request->rows, ['*'], 'page', $request->page);
+
+        return response()->json(compact('products'));
+    }
+
     public function show($slug)
     {
         $product = Product::where('slug', $slug)->first();

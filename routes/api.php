@@ -95,6 +95,7 @@ Route::controller(ShopController::class)->group(function () {
     Route::post('laptop_products', 'laptopProducts');
 
     Route::post('category/products', 'categoryProducts');
+    Route::post('shop/products', 'shopProducts');
     Route::get('singleproduct/{slug}', 'show');
 });
 
