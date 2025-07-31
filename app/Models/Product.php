@@ -139,7 +139,7 @@ class Product extends Model
         if ($filter) {
             return $query->where('category_id', $filter);
         }
-        return $query;
+        return $query->where('category_id', 26);
     }
 
     public function scopeCatProduct($query, $filter)
