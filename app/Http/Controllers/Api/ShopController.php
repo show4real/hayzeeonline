@@ -148,7 +148,7 @@ class ShopController extends Controller
             //->category($request->category)
             ->catProduct($request->categoryslug)
             ->brandProduct($request->brandslug)
-            ->sort($request->sort)
+            ->sort($request->sorting)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
