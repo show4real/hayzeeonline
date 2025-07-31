@@ -144,11 +144,11 @@ class ShopController extends Controller
 
         $products = Product::
             searchAll($request->search_all)
-            ->brand($request->brand)
-            ->category($request->category)
+            //->brand($request->brand)
+            //->category($request->category)
             ->catProduct($request->categoryslug)
             ->brandProduct($request->brandslug)
-            ->sort($request->sorting)
+            ->sort($request->sort)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
