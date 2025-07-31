@@ -173,6 +173,8 @@ class ShopController extends Controller
             searchAll($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
+            ->catProduct($request->categoryslug)
+            ->brandProduct($request->brandslug)
             ->sort($request->sorting)
             ->storage($request->storages)
             ->processor($request->processors)
