@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InsuranceApplicationRequest;
 use App\Models\InsuranceApplication;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\File;
 
 class InsuranceApplicationController extends Controller
 {
@@ -45,8 +47,23 @@ class InsuranceApplicationController extends Controller
             $vehicleVins = array_values(array_filter(array_map('trim', explode(',', $vehicleVins))));
         }
 
-        $validIdCardPath = $request->file('validIdCard')->store('insurance_applications/valid_id_cards', 'public');
-        $previousInsuranceDocumentPath = $request->file('previousInsuranceDocument')->store('insurance_applications/previous_insurance_documents', 'public');
+        // Match existing productTrait style: store straight into /public.
+        $insuranceDir = public_path('insurance');
+        if (! File::exists($insuranceDir)) {
+            File::makeDirectory($insuranceDir, 0755, true);
+        }
+
+        $validId = $request->file('validIdCard');
+        $prevDoc = $request->file('previousInsuranceDocument');
+
+        $validIdName = time() . '_' . Str::random(8) . '_valid_id.' . $validId->getClientOriginalExtension();
+        $prevDocName = time() . '_' . Str::random(8) . '_previous_insurance.' . $prevDoc->getClientOriginalExtension();
+
+        $validId->move($insuranceDir, $validIdName);
+        $prevDoc->move($insuranceDir, $prevDocName);
+
+        $validIdCardPath = URL::asset('insurance/' . $validIdName);
+        $previousInsuranceDocumentPath = URL::asset('insurance/' . $prevDocName);
 
         $application = InsuranceApplication::create([
             'first_name' => $data['firstName'],
