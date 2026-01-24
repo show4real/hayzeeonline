@@ -29,7 +29,7 @@ class ClientConsentRequest extends FormRequest
             'agencyFeeAmountPaid' => ['nullable', 'string', 'max:50'],
 
             'clientConsentSignatureType' => ['required', Rule::in(['typed', 'upload'])],
-            'clientConsentSignedByLastName' => ['required', 'string', 'max:255'],
+            'clientConsentSignedByLastName' => ['nullable', 'string', 'max:255'],
             'clientConsentSignedAt' => ['required', 'date'],
 
             'clientConsentSignatureFile' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
