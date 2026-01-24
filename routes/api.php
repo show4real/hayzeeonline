@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\PriceEditController;
 use App\Http\Controllers\Api\NoticeController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\InsuranceApplicationController;
+use App\Http\Controllers\Api\ClientConsentController;
 use MeiliSearch\Client;
 
 
@@ -40,6 +41,9 @@ Route::controller(InsuranceApplicationController::class)->group(function () {
     Route::get('insurance-applications', 'index');
     Route::post('insurance-applications', 'store');
 });
+
+Route::get('client-consents', [ClientConsentController::class, 'index']);
+Route::post('client-consents', [ClientConsentController::class, 'store']);
 
 Route::get('/configure-meilisearch', function () {
     $client = new Client('http://195.35.48.107:7700', null); 
