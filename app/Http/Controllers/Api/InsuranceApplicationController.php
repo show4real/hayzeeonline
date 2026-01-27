@@ -11,6 +11,16 @@ use Illuminate\Support\Facades\File;
 
 class InsuranceApplicationController extends Controller
 {
+    public function show($id)
+    {
+        $application = InsuranceApplication::find($id);
+        if (! $application) {
+            return response()->json(['message' => 'Insurance application not found.'], 404);
+        }
+
+        return response()->json(compact('application'));
+    }
+
     public function index()
     {
         $rows = (int) request()->input('rows', 15);
@@ -130,5 +140,104 @@ class InsuranceApplicationController extends Controller
             'message' => 'Insurance application submitted.',
             'data' => $application,
         ], 201);
+    }
+
+    public function update(InsuranceApplicationRequest $request, $id)
+    {
+        $application = InsuranceApplication::find($id);
+        if (! $application) {
+            return response()->json(['message' => 'Insurance application not found.'], 404);
+        }
+
+        $data = $request->validated();
+
+        // Parse vehicles (array or JSON string)
+        $vehicles = null;
+        if (array_key_exists('vehicles', $data) && $data['vehicles'] !== null) {
+            $vehicles = $data['vehicles'];
+            if (is_string($vehicles)) {
+                $decoded = json_decode($vehicles, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $vehicles = $decoded;
+                }
+            }
+        }
+
+        // Derive VINs (vehicles[].vin preferred)
+        $vehicleVins = [];
+        if (is_array($vehicles)) {
+            $vehicleVins = array_values(array_filter(array_map(function ($v) {
+                if (! is_array($v)) {
+                    return null;
+                }
+                $vin = isset($v['vin']) ? trim((string) $v['vin']) : '';
+                return $vin !== '' ? $vin : null;
+            }, $vehicles)));
+        }
+
+        if (count($vehicleVins) === 0 && array_key_exists('vehicleVINs', $data)) {
+            $legacy = $data['vehicleVINs'];
+            if (is_array($legacy)) {
+                $vehicleVins = array_values(array_filter(array_map(fn ($vin) => trim((string) $vin), $legacy)));
+            } else {
+                $legacy = str_replace(["\r\n", "\r"], "\n", (string) $legacy);
+                $legacy = str_replace(',', "\n", $legacy);
+                $vehicleVins = array_values(array_filter(array_map('trim', explode("\n", $legacy))));
+            }
+        }
+
+        // Optional file replacement
+        $insuranceDir = public_path('insurance');
+        if (! File::exists($insuranceDir)) {
+            File::makeDirectory($insuranceDir, 0755, true);
+        }
+
+        $validIdCardPath = $application->valid_id_card_path;
+        $previousInsuranceDocumentPath = $application->previous_insurance_document_path;
+
+        if ($request->hasFile('validIdCard')) {
+            $validId = $request->file('validIdCard');
+            $validIdName = time() . '_' . Str::random(8) . '_valid_id.' . $validId->getClientOriginalExtension();
+            $validId->move($insuranceDir, $validIdName);
+            $validIdCardPath = URL::asset('insurance/' . $validIdName);
+        }
+
+        if ($request->hasFile('previousInsuranceDocument')) {
+            $prevDoc = $request->file('previousInsuranceDocument');
+            $prevDocName = time() . '_' . Str::random(8) . '_previous_insurance.' . $prevDoc->getClientOriginalExtension();
+            $prevDoc->move($insuranceDir, $prevDocName);
+            $previousInsuranceDocumentPath = URL::asset('insurance/' . $prevDocName);
+        }
+
+        $application->update([
+            'first_name' => $data['firstName'],
+            'middle_name' => $data['middleName'] ?? null,
+            'last_name' => $data['lastName'],
+            'marital_status' => $data['maritalStatus'],
+
+            'spouse_full_name' => $data['spouseFullName'] ?? null,
+            'spouse_dob' => $data['spouseDOB'] ?? null,
+            'spouse_drivers_license_number' => $data['spouseDriversLicenseNumber'] ?? null,
+            'spouse_excluded_from_policy' => $data['spouseExcludedFromPolicy'] ?? null,
+
+            'email' => Str::lower($data['email']),
+            'residential_address' => $data['residentialAddress'],
+            'years_at_address' => (int) $data['yearsAtAddress'],
+            'previous_address' => $data['previousAddress'] ?? null,
+            'insurance_type' => $data['insuranceType'],
+            'carrier_name' => $data['carrierName'],
+            'vehicles' => is_array($vehicles) ? $vehicles : $application->vehicles,
+            'vehicle_vins' => $vehicleVins,
+            'insurance_expiration_date' => $data['insuranceExpirationDate'],
+            'payment_method' => $data['paymentMethod'],
+            'processing_officer_name' => $data['processingOfficerName'],
+            'valid_id_card_path' => $validIdCardPath,
+            'previous_insurance_document_path' => $previousInsuranceDocumentPath,
+        ]);
+
+        return response()->json([
+            'message' => 'Insurance application updated.',
+            'data' => $application->fresh(),
+        ]);
     }
 }

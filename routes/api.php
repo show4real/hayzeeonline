@@ -39,7 +39,9 @@ Route::post('complete/order', [PaymentController::class, 'completeOrder']);
 
 Route::controller(InsuranceApplicationController::class)->group(function () {
     Route::get('insurance-applications', 'index');
+    Route::get('insurance-applications/{id}', 'show');
     Route::post('insurance-applications', 'store');
+    Route::post('update/insurance-applications/{id}', 'update');
 });
 
 Route::get('client-consents', [ClientConsentController::class, 'index']);
