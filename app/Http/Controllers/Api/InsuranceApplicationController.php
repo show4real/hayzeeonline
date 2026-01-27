@@ -109,7 +109,7 @@ class InsuranceApplicationController extends Controller
     {
         $data = $request->validated();
 
-    $vehicles = $this->normalizeVehiclesPayload($request, $data);
+    $vehicles = $data['vehicles'] ?? [];
     dd($vehicles);
     $vehicleVins = $this->deriveVehicleVins($vehicles, $data);
 
