@@ -171,8 +171,8 @@ class InsuranceApplicationController extends Controller
 
         $data = $request->validated();
 
-    $vehicles = $this->normalizeVehiclesPayload($request, $data);
-    $vehicleVins = $this->deriveVehicleVins($vehicles, $data);
+        $vehicles = $data['vehicles'] ?? [];
+        $vehicleVins = [];
 
         // Optional file replacement
         $insuranceDir = public_path('insurance');
