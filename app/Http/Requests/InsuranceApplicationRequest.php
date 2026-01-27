@@ -44,8 +44,8 @@ class InsuranceApplicationRequest extends FormRequest
             'paymentMethod' => ['required', 'string', 'max:100'],
             'processingOfficerName' => ['required', 'string', 'max:255'],
 
-            'validIdCard' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
-            'previousInsuranceDocument' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
+            //'validIdCard' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
+            //'previousInsuranceDocument' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
         ];
     }
 
