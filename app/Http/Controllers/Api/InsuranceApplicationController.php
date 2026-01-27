@@ -110,7 +110,7 @@ class InsuranceApplicationController extends Controller
         $data = $request->validated();
 
     $vehicles = $data['vehicles'] ?? [];
-    $vehicleVins = $this->deriveVehicleVins($vehicles, $data);
+    $vehicleVins = [];
 
         // Match existing productTrait style: store straight into /public.
         $insuranceDir = public_path('insurance');
