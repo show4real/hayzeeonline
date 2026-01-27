@@ -15,6 +15,13 @@ class CreateInsuranceApplicationsTable extends Migration
             $table->string('middle_name')->nullable();
             $table->string('last_name');
             $table->string('marital_status');
+
+            // Spouse info (optional)
+            $table->string('spouse_full_name')->nullable();
+            $table->date('spouse_dob')->nullable();
+            $table->string('spouse_drivers_license_number')->nullable();
+            $table->string('spouse_excluded_from_policy')->nullable();
+
             $table->string('email')->index();
 
             $table->text('residential_address');
@@ -23,6 +30,11 @@ class CreateInsuranceApplicationsTable extends Migration
 
             $table->string('insurance_type');
             $table->string('carrier_name');
+
+            // Full vehicles payload (JSON array of objects)
+            $table->json('vehicles')->nullable();
+
+            // VINs kept for compatibility/search; can be derived from vehicles[].vin
             $table->json('vehicle_vins');
             $table->date('insurance_expiration_date');
 

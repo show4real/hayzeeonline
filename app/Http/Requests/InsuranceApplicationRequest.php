@@ -18,6 +18,13 @@ class InsuranceApplicationRequest extends FormRequest
             'middleName' => ['nullable', 'string', 'max:255'],
             'lastName' => ['required', 'string', 'max:255'],
             'maritalStatus' => ['required', 'string', 'max:50'],
+
+            // Spouse info (optional)
+            'spouseFullName' => ['nullable', 'string', 'max:255'],
+            'spouseDOB' => ['nullable', 'date_format:Y-m-d'],
+            'spouseDriversLicenseNumber' => ['nullable', 'string', 'max:255'],
+            'spouseExcludedFromPolicy' => ['nullable', 'string', 'max:50'],
+
             'email' => ['required', 'email', 'max:255'],
             'residentialAddress' => ['required', 'string', 'max:1000'],
             'yearsAtAddress' => ['required', 'integer', 'min:0', 'max:120'],
@@ -25,8 +32,13 @@ class InsuranceApplicationRequest extends FormRequest
             'insuranceType' => ['required', 'string', 'max:100'],
             'carrierName' => ['required', 'string', 'max:255'],
 
-            // Accept either an array of VINs or a comma-separated list.
-            'vehicleVINs' => ['required'],
+            // New: vehicles payload can be provided either as array (application/json)
+            // or as a JSON string (multipart/form-data).
+            'vehicles' => ['nullable'],
+
+            // Legacy: accept array of VINs OR a comma/newline-separated string.
+            // Required if vehicles isn't provided.
+            'vehicleVINs' => ['required_without:vehicles'],
 
             'insuranceExpirationDate' => ['required', 'date_format:Y-m-d'],
             'paymentMethod' => ['required', 'string', 'max:100'],
@@ -40,7 +52,7 @@ class InsuranceApplicationRequest extends FormRequest
     public function messages()
     {
         return [
-            'vehicleVINs.required' => 'vehicleVINs is required (array or comma-separated string).',
+            'vehicleVINs.required_without' => 'vehicleVINs is required when vehicles is not provided.',
         ];
     }
 }

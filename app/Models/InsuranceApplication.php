@@ -14,12 +14,20 @@ class InsuranceApplication extends Model
         'middle_name',
         'last_name',
         'marital_status',
+
+    'spouse_full_name',
+    'spouse_dob',
+    'spouse_drivers_license_number',
+    'spouse_excluded_from_policy',
+
         'email',
         'residential_address',
         'years_at_address',
         'previous_address',
         'insurance_type',
         'carrier_name',
+
+    'vehicles',
         'vehicle_vins',
         'insurance_expiration_date',
         'payment_method',
@@ -29,7 +37,9 @@ class InsuranceApplication extends Model
     ];
 
     protected $casts = [
+    'vehicles' => 'array',
         'vehicle_vins' => 'array',
+    'spouse_dob' => 'date',
         'insurance_expiration_date' => 'date',
         'years_at_address' => 'integer',
     ];

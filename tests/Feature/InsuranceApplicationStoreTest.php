@@ -20,13 +20,18 @@ class InsuranceApplicationStoreTest extends TestCase
             'middleName' => 'M',
             'lastName' => 'Doe',
             'maritalStatus' => 'Single',
+            'spouseFullName' => 'Jane Doe',
+            'spouseDOB' => '1990-05-19',
+            'spouseDriversLicenseNumber' => 'D1234567',
+            'spouseExcludedFromPolicy' => 'no',
             'email' => 'john@example.com',
             'residentialAddress' => '123 Main St',
             'yearsAtAddress' => 2,
             'previousAddress' => '456 Old St',
             'insuranceType' => 'Auto',
             'carrierName' => 'GEICO',
-            'vehicleVINs' => 'VIN1,VIN2',
+            // Legacy VIN field supports comma or newline separated.
+            'vehicleVINs' => "VIN1\nVIN2",
             'insuranceExpirationDate' => '2026-02-01',
             'paymentMethod' => 'Auto Pay',
             'processingOfficerName' => 'Jane Smith',
@@ -44,6 +49,7 @@ class InsuranceApplicationStoreTest extends TestCase
             'last_name' => 'Doe',
             'email' => 'john@example.com',
             'carrier_name' => 'GEICO',
+            'spouse_full_name' => 'Jane Doe',
         ]);
 
         $app = \DB::table('insurance_applications')->first();
@@ -51,6 +57,59 @@ class InsuranceApplicationStoreTest extends TestCase
 
         Storage::disk('public')->assertExists($app->valid_id_card_path);
         Storage::disk('public')->assertExists($app->previous_insurance_document_path);
+    }
+
+    public function test_it_accepts_vehicles_payload_and_derives_vehicle_vins()
+    {
+        Storage::fake('public');
+
+        $payload = [
+            'firstName' => 'John',
+            'middleName' => 'M',
+            'lastName' => 'Doe',
+            'maritalStatus' => 'Married',
+            'email' => 'john@example.com',
+            'residentialAddress' => '123 Main St',
+            'yearsAtAddress' => 2,
+            'insuranceType' => 'Auto',
+            'carrierName' => 'GEICO',
+            'vehicles' => [
+                [
+                    'vin' => '1HGCM82633A004352',
+                    'make' => 'Honda',
+                    'model' => 'Accord',
+                    'year' => '2022',
+                    'purchaseDate' => '2024-01-15',
+                    'ownershipType' => 'owned',
+                ],
+                [
+                    'vin' => '2C3KA53G76H123456',
+                    'make' => 'Toyota',
+                    'model' => 'Camry',
+                    'year' => '2020',
+                    'purchaseDate' => '2023-06-20',
+                    'ownershipType' => 'lien',
+                ],
+            ],
+            'insuranceExpirationDate' => '2026-09-30',
+            'paymentMethod' => 'Auto Pay',
+            'processingOfficerName' => 'Alex Smith',
+            'validIdCard' => UploadedFile::fake()->image('id.png'),
+            'previousInsuranceDocument' => UploadedFile::fake()->create('prev.pdf', 50, 'application/pdf'),
+        ];
+
+        $response = $this->postJson('/api/insurance-applications', $payload);
+        $response->assertStatus(201);
+
+        $app = \DB::table('insurance_applications')->first();
+        $this->assertNotNull($app);
+
+        $this->assertSame(
+            json_encode(['1HGCM82633A004352', '2C3KA53G76H123456']),
+            $app->vehicle_vins
+        );
+
+        $this->assertNotNull($app->vehicles);
     }
 
     public function test_it_rejects_missing_required_fields()

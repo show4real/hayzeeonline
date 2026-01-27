@@ -42,9 +42,44 @@ class InsuranceApplicationController extends Controller
     {
         $data = $request->validated();
 
-        $vehicleVins = $data['vehicleVINs'];
-        if (is_string($vehicleVins)) {
-            $vehicleVins = array_values(array_filter(array_map('trim', explode(',', $vehicleVins))));
+        // Accept vehicles as:
+        // - array (application/json)
+        // - JSON string (multipart/form-data)
+        $vehicles = null;
+        if (array_key_exists('vehicles', $data) && $data['vehicles'] !== null) {
+            $vehicles = $data['vehicles'];
+            if (is_string($vehicles)) {
+                $decoded = json_decode($vehicles, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $vehicles = $decoded;
+                }
+            }
+        }
+
+        // VINs are stored as an array for multiple vehicles.
+        // Priority: vehicles[].vin -> legacy vehicleVINs.
+        $vehicleVins = [];
+
+        if (is_array($vehicles)) {
+            $vehicleVins = array_values(array_filter(array_map(function ($v) {
+                if (! is_array($v)) {
+                    return null;
+                }
+                $vin = isset($v['vin']) ? trim((string) $v['vin']) : '';
+                return $vin !== '' ? $vin : null;
+            }, $vehicles)));
+        }
+
+        if (count($vehicleVins) === 0 && array_key_exists('vehicleVINs', $data)) {
+            $legacy = $data['vehicleVINs'];
+            if (is_array($legacy)) {
+                $vehicleVins = array_values(array_filter(array_map(fn ($vin) => trim((string) $vin), $legacy)));
+            } else {
+                // Support comma-separated or newline-separated VINs
+                $legacy = str_replace(["\r\n", "\r"], "\n", (string) $legacy);
+                $legacy = str_replace(',', "\n", $legacy);
+                $vehicleVins = array_values(array_filter(array_map('trim', explode("\n", $legacy))));
+            }
         }
 
         // Match existing productTrait style: store straight into /public.
@@ -70,12 +105,19 @@ class InsuranceApplicationController extends Controller
             'middle_name' => $data['middleName'] ?? null,
             'last_name' => $data['lastName'],
             'marital_status' => $data['maritalStatus'],
+
+            'spouse_full_name' => $data['spouseFullName'] ?? null,
+            'spouse_dob' => $data['spouseDOB'] ?? null,
+            'spouse_drivers_license_number' => $data['spouseDriversLicenseNumber'] ?? null,
+            'spouse_excluded_from_policy' => $data['spouseExcludedFromPolicy'] ?? null,
+
             'email' => Str::lower($data['email']),
             'residential_address' => $data['residentialAddress'],
             'years_at_address' => (int) $data['yearsAtAddress'],
             'previous_address' => $data['previousAddress'] ?? null,
             'insurance_type' => $data['insuranceType'],
             'carrier_name' => $data['carrierName'],
+            'vehicles' => is_array($vehicles) ? $vehicles : null,
             'vehicle_vins' => $vehicleVins,
             'insurance_expiration_date' => $data['insuranceExpirationDate'],
             'payment_method' => $data['paymentMethod'],
