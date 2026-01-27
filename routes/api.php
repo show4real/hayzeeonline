@@ -42,6 +42,7 @@ Route::controller(InsuranceApplicationController::class)->group(function () {
     Route::get('insurance-applications/{id}', 'show');
     Route::post('insurance-applications', 'store');
     Route::post('update/insurance-applications/{id}', 'update');
+    Route::post('delete/insurance-applications/{id}', 'destroy');
 });
 
 Route::get('client-consents', [ClientConsentController::class, 'index']);

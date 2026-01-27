@@ -11,6 +11,63 @@ use Illuminate\Support\Facades\File;
 
 class InsuranceApplicationController extends Controller
 {
+    private function normalizeVehiclesPayload($request, array $validatedData): ?array
+    {
+        // 1) vehicles directly provided as array (application/json)
+        if (array_key_exists('vehicles', $validatedData) && is_array($validatedData['vehicles'])) {
+            return $validatedData['vehicles'];
+        }
+
+        // 2) vehicles provided as JSON string (multipart/form-data)
+        if (array_key_exists('vehicles', $validatedData) && is_string($validatedData['vehicles'])) {
+            $decoded = json_decode($validatedData['vehicles'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        // 3) vehicles provided as nested fields: vehicles[0][vin], vehicles[0][make], ...
+        // In this case, Laravel won't include it in validated data unless rules explicitly allow nested keys.
+        $raw = $request->input('vehicles');
+        if (is_array($raw)) {
+            return $raw;
+        }
+
+        return null;
+    }
+
+    private function deriveVehicleVins(?array $vehicles, array $validatedData): array
+    {
+        // Prefer vehicles[].vin
+        if (is_array($vehicles)) {
+            $vins = array_values(array_filter(array_map(function ($v) {
+                if (! is_array($v)) {
+                    return null;
+                }
+                $vin = isset($v['vin']) ? trim((string) $v['vin']) : '';
+                return $vin !== '' ? $vin : null;
+            }, $vehicles)));
+
+            if (count($vins) > 0) {
+                return $vins;
+            }
+        }
+
+        // Fallback: legacy vehicleVINs
+        if (array_key_exists('vehicleVINs', $validatedData)) {
+            $legacy = $validatedData['vehicleVINs'];
+            if (is_array($legacy)) {
+                return array_values(array_filter(array_map(fn ($vin) => trim((string) $vin), $legacy)));
+            }
+
+            $legacy = str_replace(["\r\n", "\r"], "\n", (string) $legacy);
+            $legacy = str_replace(',', "\n", $legacy);
+            return array_values(array_filter(array_map('trim', explode("\n", $legacy))));
+        }
+
+        return [];
+    }
+
     public function show($id)
     {
         $application = InsuranceApplication::find($id);
@@ -52,45 +109,9 @@ class InsuranceApplicationController extends Controller
     {
         $data = $request->validated();
 
-        // Accept vehicles as:
-        // - array (application/json)
-        // - JSON string (multipart/form-data)
-        $vehicles = null;
-        if (array_key_exists('vehicles', $data) && $data['vehicles'] !== null) {
-            $vehicles = $data['vehicles'];
-            if (is_string($vehicles)) {
-                $decoded = json_decode($vehicles, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $vehicles = $decoded;
-                }
-            }
-        }
-
-        // VINs are stored as an array for multiple vehicles.
-        // Priority: vehicles[].vin -> legacy vehicleVINs.
-        $vehicleVins = [];
-
-        if (is_array($vehicles)) {
-            $vehicleVins = array_values(array_filter(array_map(function ($v) {
-                if (! is_array($v)) {
-                    return null;
-                }
-                $vin = isset($v['vin']) ? trim((string) $v['vin']) : '';
-                return $vin !== '' ? $vin : null;
-            }, $vehicles)));
-        }
-
-        if (count($vehicleVins) === 0 && array_key_exists('vehicleVINs', $data)) {
-            $legacy = $data['vehicleVINs'];
-            if (is_array($legacy)) {
-                $vehicleVins = array_values(array_filter(array_map(fn ($vin) => trim((string) $vin), $legacy)));
-            } else {
-                // Support comma-separated or newline-separated VINs
-                $legacy = str_replace(["\r\n", "\r"], "\n", (string) $legacy);
-                $legacy = str_replace(',', "\n", $legacy);
-                $vehicleVins = array_values(array_filter(array_map('trim', explode("\n", $legacy))));
-            }
-        }
+    $vehicles = $this->normalizeVehiclesPayload($request, $data);
+    dd($vehicles);
+    $vehicleVins = $this->deriveVehicleVins($vehicles, $data);
 
         // Match existing productTrait style: store straight into /public.
         $insuranceDir = public_path('insurance');
@@ -127,7 +148,7 @@ class InsuranceApplicationController extends Controller
             'previous_address' => $data['previousAddress'] ?? null,
             'insurance_type' => $data['insuranceType'],
             'carrier_name' => $data['carrierName'],
-            'vehicles' => is_array($vehicles) ? $vehicles : null,
+            'vehicles' => $vehicles,
             'vehicle_vins' => $vehicleVins,
             'insurance_expiration_date' => $data['insuranceExpirationDate'],
             'payment_method' => $data['paymentMethod'],
@@ -151,40 +172,8 @@ class InsuranceApplicationController extends Controller
 
         $data = $request->validated();
 
-        // Parse vehicles (array or JSON string)
-        $vehicles = null;
-        if (array_key_exists('vehicles', $data) && $data['vehicles'] !== null) {
-            $vehicles = $data['vehicles'];
-            if (is_string($vehicles)) {
-                $decoded = json_decode($vehicles, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $vehicles = $decoded;
-                }
-            }
-        }
-
-        // Derive VINs (vehicles[].vin preferred)
-        $vehicleVins = [];
-        if (is_array($vehicles)) {
-            $vehicleVins = array_values(array_filter(array_map(function ($v) {
-                if (! is_array($v)) {
-                    return null;
-                }
-                $vin = isset($v['vin']) ? trim((string) $v['vin']) : '';
-                return $vin !== '' ? $vin : null;
-            }, $vehicles)));
-        }
-
-        if (count($vehicleVins) === 0 && array_key_exists('vehicleVINs', $data)) {
-            $legacy = $data['vehicleVINs'];
-            if (is_array($legacy)) {
-                $vehicleVins = array_values(array_filter(array_map(fn ($vin) => trim((string) $vin), $legacy)));
-            } else {
-                $legacy = str_replace(["\r\n", "\r"], "\n", (string) $legacy);
-                $legacy = str_replace(',', "\n", $legacy);
-                $vehicleVins = array_values(array_filter(array_map('trim', explode("\n", $legacy))));
-            }
-        }
+    $vehicles = $this->normalizeVehiclesPayload($request, $data);
+    $vehicleVins = $this->deriveVehicleVins($vehicles, $data);
 
         // Optional file replacement
         $insuranceDir = public_path('insurance');
@@ -226,7 +215,7 @@ class InsuranceApplicationController extends Controller
             'previous_address' => $data['previousAddress'] ?? null,
             'insurance_type' => $data['insuranceType'],
             'carrier_name' => $data['carrierName'],
-            'vehicles' => is_array($vehicles) ? $vehicles : $application->vehicles,
+            'vehicles' => $vehicles !== null ? $vehicles : $application->vehicles,
             'vehicle_vins' => $vehicleVins,
             'insurance_expiration_date' => $data['insuranceExpirationDate'],
             'payment_method' => $data['paymentMethod'],
@@ -239,5 +228,17 @@ class InsuranceApplicationController extends Controller
             'message' => 'Insurance application updated.',
             'data' => $application->fresh(),
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $application = InsuranceApplication::find($id);
+        if (! $application) {
+            return response()->json(['message' => 'Insurance application not found.'], 404);
+        }
+
+        $application->delete();
+
+        return response()->json(['message' => 'Insurance application deleted.']);
     }
 }
