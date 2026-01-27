@@ -172,6 +172,7 @@ class InsuranceApplicationController extends Controller
         $data = $request->validated();
 
         $vehicles = $data['vehicles'] ?? [];
+        dd($vehicles);
         $vehicleVins = [];
 
         // Optional file replacement
