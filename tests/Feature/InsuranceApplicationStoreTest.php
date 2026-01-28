@@ -25,6 +25,7 @@ class InsuranceApplicationStoreTest extends TestCase
             'spouseDriversLicenseNumber' => 'D1234567',
             'spouseExcludedFromPolicy' => 'no',
             'email' => 'john@example.com',
+            'phone' => '555-0000',
             'residentialAddress' => '123 Main St',
             'yearsAtAddress' => 2,
             'previousAddress' => '456 Old St',
@@ -48,6 +49,7 @@ class InsuranceApplicationStoreTest extends TestCase
             'first_name' => 'John',
             'last_name' => 'Doe',
             'email' => 'john@example.com',
+            'phone' => '555-0000',
             'carrier_name' => 'GEICO',
             'spouse_full_name' => 'Jane Doe',
         ]);
@@ -69,6 +71,7 @@ class InsuranceApplicationStoreTest extends TestCase
             'lastName' => 'Doe',
             'maritalStatus' => 'Married',
             'email' => 'john@example.com',
+            'phone' => '555-1111',
             'residentialAddress' => '123 Main St',
             'yearsAtAddress' => 2,
             'insuranceType' => 'Auto',

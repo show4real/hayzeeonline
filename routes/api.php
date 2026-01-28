@@ -47,6 +47,7 @@ Route::controller(InsuranceApplicationController::class)->group(function () {
 
 Route::get('client-consents', [ClientConsentController::class, 'index']);
 Route::post('client-consents', [ClientConsentController::class, 'store']);
+Route::post('client-consents/{clientConsent}', [ClientConsentController::class, 'update']);
 
 Route::get('/configure-meilisearch', function () {
     $client = new Client('http://195.35.48.107:7700', null); 

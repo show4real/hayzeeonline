@@ -26,6 +26,7 @@ class InsuranceApplicationRequest extends FormRequest
             'spouseExcludedFromPolicy' => ['nullable', 'string', 'max:50'],
 
             'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'residentialAddress' => ['required', 'string', 'max:1000'],
             'yearsAtAddress' => ['required', 'integer', 'min:0', 'max:120'],
             'previousAddress' => ['nullable', 'string', 'max:1000'],

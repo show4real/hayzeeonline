@@ -7,6 +7,7 @@ use App\Http\Requests\ClientConsentRequest;
 use App\Models\ClientConsent;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ClientConsentController extends Controller
@@ -102,5 +103,92 @@ class ClientConsentController extends Controller
             'message' => 'Client consent submitted.',
             'data' => $consent,
         ], 201);
+    }
+
+    public function update(Request $request, ClientConsent $clientConsent)
+    {
+        $data = $request->validate([
+            'consentClientFullName' => ['sometimes', 'string', 'max:255'],
+            'consentClientPhone' => ['sometimes', 'string', 'max:50'],
+            'consentClientEmail' => ['sometimes', 'email', 'max:255'],
+            'consentClientAddress' => ['sometimes', 'string', 'max:2000'],
+
+            'fixedFeeAmount' => ['sometimes', 'string', 'max:50'],
+            // Sent as "true"/"false" strings in multipart/form-data.
+            'agencyFeeConsent' => ['sometimes', \Illuminate\Validation\Rule::in(['true', 'false', '1', '0', 1, 0, true, false])],
+            'agencyFeePaymentMethod' => ['nullable', 'string', 'max:100'],
+            'agencyFeeAmountPaid' => ['nullable', 'string', 'max:50'],
+
+            'clientConsentSignatureType' => ['sometimes', \Illuminate\Validation\Rule::in(['typed', 'upload'])],
+            'clientConsentSignedByLastName' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'clientConsentSignedAt' => ['sometimes', 'date'],
+
+            'clientConsentSignatureFile' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
+        ]);
+
+        $signatureType = $data['clientConsentSignatureType'] ?? $clientConsent->client_consent_signature_type;
+        $hasFile = $request->hasFile('clientConsentSignatureFile');
+
+        if ($signatureType === 'upload' && $request->has('clientConsentSignatureType') && ! $hasFile) {
+            return response()->json([
+                'message' => 'Validation error.',
+                'errors' => ['clientConsentSignatureFile' => ['clientConsentSignatureFile is required when clientConsentSignatureType is upload.']],
+            ], 422);
+        }
+
+        if ($signatureType === 'typed' && $hasFile) {
+            return response()->json([
+                'message' => 'Validation error.',
+                'errors' => ['clientConsentSignatureFile' => ['clientConsentSignatureFile must not be provided when clientConsentSignatureType is typed.']],
+            ], 422);
+        }
+
+        $signatureFileUrl = $clientConsent->client_consent_signature_file_path;
+        if ($signatureType === 'upload' && $hasFile) {
+            $consentsDir = public_path('client_consents');
+            if (! File::exists($consentsDir)) {
+                File::makeDirectory($consentsDir, 0755, true);
+            }
+
+            $file = $request->file('clientConsentSignatureFile');
+            $fileName = time() . '_' . Str::random(10) . '_signature.' . $file->getClientOriginalExtension();
+            $file->move($consentsDir, $fileName);
+            $signatureFileUrl = URL::asset('client_consents/' . $fileName);
+        }
+
+        $clientConsent->fill([
+            'consent_client_full_name' => $data['consentClientFullName'] ?? $clientConsent->consent_client_full_name,
+            'consent_client_phone' => $data['consentClientPhone'] ?? $clientConsent->consent_client_phone,
+            'consent_client_email' => array_key_exists('consentClientEmail', $data)
+                ? Str::lower($data['consentClientEmail'])
+                : $clientConsent->consent_client_email,
+            'consent_client_address' => $data['consentClientAddress'] ?? $clientConsent->consent_client_address,
+
+            'fixed_fee_amount' => $data['fixedFeeAmount'] ?? $clientConsent->fixed_fee_amount,
+            'agency_fee_consent' => array_key_exists('agencyFeeConsent', $data)
+                ? filter_var($data['agencyFeeConsent'], FILTER_VALIDATE_BOOLEAN)
+                : $clientConsent->agency_fee_consent,
+            'agency_fee_payment_method' => array_key_exists('agencyFeePaymentMethod', $data)
+                ? ($data['agencyFeePaymentMethod'] ?? null)
+                : $clientConsent->agency_fee_payment_method,
+            'agency_fee_amount_paid' => array_key_exists('agencyFeeAmountPaid', $data)
+                ? ($data['agencyFeeAmountPaid'] ?? null)
+                : $clientConsent->agency_fee_amount_paid,
+
+            'client_consent_signature_type' => $signatureType,
+            'client_consent_signed_by_last_name' => array_key_exists('clientConsentSignedByLastName', $data)
+                ? ($data['clientConsentSignedByLastName'] ?? null)
+                : $clientConsent->client_consent_signed_by_last_name,
+            'client_consent_signed_at' => $data['clientConsentSignedAt'] ?? $clientConsent->client_consent_signed_at,
+
+            'client_consent_signature_file_path' => $signatureFileUrl,
+        ]);
+
+        $clientConsent->save();
+
+        return response()->json([
+            'message' => 'Client consent updated.',
+            'data' => $clientConsent->fresh(),
+        ]);
     }
 }

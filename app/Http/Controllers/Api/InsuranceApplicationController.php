@@ -142,6 +142,7 @@ class InsuranceApplicationController extends Controller
             'spouse_excluded_from_policy' => $data['spouseExcludedFromPolicy'] ?? null,
 
             'email' => Str::lower($data['email']),
+            'phone' => $data['phone'] ?? null,
             'residential_address' => $data['residentialAddress'],
             'years_at_address' => (int) $data['yearsAtAddress'],
             'previous_address' => $data['previousAddress'] ?? null,
@@ -209,6 +210,7 @@ class InsuranceApplicationController extends Controller
             'spouse_excluded_from_policy' => $data['spouseExcludedFromPolicy'] ?? null,
 
             'email' => Str::lower($data['email']),
+            'phone' => $data['phone'] ?? null,
             'residential_address' => $data['residentialAddress'],
             'years_at_address' => (int) $data['yearsAtAddress'],
             'previous_address' => $data['previousAddress'] ?? null,

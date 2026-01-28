@@ -21,6 +21,7 @@ class InsuranceApplication extends Model
     'spouse_excluded_from_policy',
 
         'email',
+    'phone',
         'residential_address',
         'years_at_address',
         'previous_address',
