@@ -191,4 +191,25 @@ class ClientConsentController extends Controller
             'data' => $clientConsent->fresh(),
         ]);
     }
+
+    public function destroy(ClientConsent $clientConsent)
+    {
+        // Best-effort cleanup of an uploaded file that lives under /public.
+        $fileUrl = (string) ($clientConsent->client_consent_signature_file_path ?? '');
+        if ($fileUrl !== '') {
+            $path = parse_url($fileUrl, PHP_URL_PATH);
+            if (is_string($path) && $path !== '') {
+                $fullPath = public_path(ltrim($path, '/'));
+                if (File::exists($fullPath)) {
+                    File::delete($fullPath);
+                }
+            }
+        }
+
+        $clientConsent->delete();
+
+        return response()->json([
+            'message' => 'Client consent deleted.',
+        ]);
+    }
 }

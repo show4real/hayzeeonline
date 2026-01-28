@@ -43,11 +43,13 @@ Route::controller(InsuranceApplicationController::class)->group(function () {
     Route::post('insurance-applications', 'store');
     Route::post('update/insurance-applications/{id}', 'update');
     Route::post('delete/insurance-applications/{id}', 'destroy');
+    Route::delete('insurance-applications/{id}', 'destroy');
 });
 
 Route::get('client-consents', [ClientConsentController::class, 'index']);
 Route::post('client-consents', [ClientConsentController::class, 'store']);
 Route::post('client-consents/{clientConsent}', [ClientConsentController::class, 'update']);
+Route::delete('client-consents/{clientConsent}', [ClientConsentController::class, 'destroy']);
 
 Route::get('/configure-meilisearch', function () {
     $client = new Client('http://195.35.48.107:7700', null); 
