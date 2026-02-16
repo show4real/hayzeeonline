@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\NoticeController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\InsuranceApplicationController;
 use App\Http\Controllers\Api\ClientConsentController;
+use App\Http\Controllers\Api\QuickFormController;
 use MeiliSearch\Client;
 
 
@@ -50,6 +51,11 @@ Route::get('client-consents', [ClientConsentController::class, 'index']);
 Route::post('client-consents', [ClientConsentController::class, 'store']);
 Route::post('client-consents/{clientConsent}', [ClientConsentController::class, 'update']);
 Route::delete('client-consents/{clientConsent}', [ClientConsentController::class, 'destroy']);
+
+// Quick form endpoint to store name, description and idCard upload
+Route::post('quick-form', [QuickFormController::class, 'store']);
+Route::get('quick-form', [QuickFormController::class, 'index']);
+Route::get('quick-form/{id}', [QuickFormController::class, 'show']);
 
 Route::get('/configure-meilisearch', function () {
     $client = new Client('http://195.35.48.107:7700', null); 
