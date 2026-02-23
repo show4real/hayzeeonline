@@ -23,16 +23,12 @@
       "name": "Health Supplements - Products",
       "item": [
         {
-          "name": "Create Product",
+          "name": "Create Product (multipart file upload)",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
                 "value": "application/json"
               }
             ],
@@ -48,8 +44,14 @@
               ]
             },
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Vitamin D3 5000IU\",\n  \"description\": \"Bone + immune support (90 softgels)\",\n  \"price\": 9800,\n  \"image\": \"https://yourcdn.com/hs/vitamin-d3.jpg\",\n  \"availability\": 1\n}\n"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Vitamin D3 5000IU", "type": "text" },
+                { "key": "description", "value": "Bone + immune support (90 softgels)", "type": "text" },
+                { "key": "price", "value": "9800", "type": "text" },
+                { "key": "availability", "value": "1", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
             }
           }
         },
@@ -87,16 +89,12 @@
           }
         },
         {
-          "name": "Update Product (by id)",
+          "name": "Update Product (multipart, optional image)",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
                 "value": "application/json"
               }
             ],
@@ -113,8 +111,13 @@
               ]
             },
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"price\": 10500,\n  \"availability\": 1,\n  \"description\": \"Updated description\"\n}\n"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "price", "value": "10500", "type": "text" },
+                { "key": "availability", "value": "1", "type": "text" },
+                { "key": "description", "value": "Updated description", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
             }
           }
         }

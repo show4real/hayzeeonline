@@ -8,6 +8,9 @@ use App\Models\HealthSupplementOrderItem;
 use App\Models\HealthSupplementProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class HealthSupplementController extends Controller
 {
@@ -25,11 +28,26 @@ class HealthSupplementController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
-            'image' => ['nullable', 'string', 'max:2048'],
+            'image' => ['nullable', 'file', 'image', 'max:5120'],
             'availability' => ['nullable', 'integer'],
         ]);
 
-    $product = HealthSupplementProduct::create($data);
+        $imageUrl = null;
+        if ($request->hasFile('image')) {
+            $dir = public_path('health_supplements');
+            if (! File::exists($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+
+            $file = $request->file('image');
+            $imageName = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $file->move($dir, $imageName);
+            $imageUrl = URL::asset('health_supplements/' . $imageName);
+        }
+
+        $data['image'] = $imageUrl;
+
+        $product = HealthSupplementProduct::create($data);
 
         return response()->json([
             'message' => 'Product created',
@@ -69,9 +87,32 @@ class HealthSupplementController extends Controller
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'price' => ['sometimes', 'numeric', 'min:0'],
-            'image' => ['sometimes', 'nullable', 'string', 'max:2048'],
+            'image' => ['sometimes', 'nullable', 'file', 'image', 'max:5120'],
             'availability' => ['sometimes', 'integer'],
         ]);
+
+        if ($request->hasFile('image')) {
+            // Delete previous image file if it was stored locally
+            if (is_string($product->image) && $product->image !== '') {
+                $path = parse_url($product->image, PHP_URL_PATH);
+                if (is_string($path) && str_starts_with($path, '/health_supplements/')) {
+                    $filePath = public_path(ltrim($path, '/'));
+                    if (File::exists($filePath)) {
+                        File::delete($filePath);
+                    }
+                }
+            }
+
+            $dir = public_path('health_supplements');
+            if (! File::exists($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+
+            $file = $request->file('image');
+            $imageName = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $file->move($dir, $imageName);
+            $data['image'] = URL::asset('health_supplements/' . $imageName);
+        }
 
         $product->fill($data);
         $product->save();
