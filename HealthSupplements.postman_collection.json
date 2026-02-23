@@ -1,0 +1,184 @@
+{
+  "info": {
+    "_postman_id": "b9c1db8e-6e00-4f52-9e0a-2e7e9d51c7e2",
+    "name": "HayzeeOnline - Health Supplements API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "product_id",
+      "value": "1"
+    },
+    {
+      "key": "order_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Supplements - Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health-supplements/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health-supplements",
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vitamin D3 5000IU\",\n  \"description\": \"Bone + immune support (90 softgels)\",\n  \"price\": 9800,\n  \"image\": \"https://yourcdn.com/hs/vitamin-d3.jpg\",\n  \"availability\": 1\n}\n"
+            }
+          }
+        },
+        {
+          "name": "List Products (optional pagination + search)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health-supplements/products?rows=20&search=vitamin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health-supplements",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "rows",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "vitamin"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Product (by id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health-supplements/products/{{product_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health-supplements",
+                "products",
+                "{{product_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 10500,\n  \"availability\": 1,\n  \"description\": \"Updated description\"\n}\n"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Supplements - Orders",
+      "item": [
+        {
+          "name": "Create Order (customer + payment + items)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health-supplements/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health-supplements",
+                "orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": {\n    \"name\": \"Amina Musa\",\n    \"email\": \"amina@example.com\",\n    \"phone\": \"08000000000\",\n    \"address\": \"23 Airport Road, Abuja\"\n  },\n  \"payment\": {\n    \"reference\": \"PAYSTACK_REF_123\",\n    \"provider\": \"paystack\",\n    \"status\": \"paid\"\n  },\n  \"items\": [\n    { \"product_id\": 1, \"quantity\": 2, \"price\": 9800 },\n    { \"product_id\": 2, \"quantity\": 1, \"price\": 14500 }\n  ]\n}\n"
+            }
+          }
+        },
+        {
+          "name": "Get Order (with items + product info)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health-supplements/orders/{{order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "health-supplements",
+                "orders",
+                "{{order_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

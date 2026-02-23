@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\InsuranceApplicationController;
 use App\Http\Controllers\Api\ClientConsentController;
 use App\Http\Controllers\Api\QuickFormController;
+use App\Http\Controllers\Api\HealthSupplementController;
 use MeiliSearch\Client;
 
 
@@ -56,6 +57,19 @@ Route::delete('client-consents/{clientConsent}', [ClientConsentController::class
 Route::post('quick-form', [QuickFormController::class, 'store']);
 Route::get('quick-form', [QuickFormController::class, 'index']);
 Route::get('quick-form/{id}', [QuickFormController::class, 'show']);
+
+// Health supplement shop endpoints
+Route::controller(HealthSupplementController::class)->group(function () {
+    Route::post('health-supplements/products', 'createProduct');
+    Route::get('health-supplements/products', 'retrieveProducts');
+    Route::post('health-supplements/products/{id}', 'updateProduct');
+
+    // Place an order (stores payment, order, and customer details)
+    Route::post('health-supplements/orders', 'requestProductsAsOrder');
+
+    // Retrieve order info + its details
+    Route::get('health-supplements/orders/{id}', 'retrieveOrderInfo');
+});
 
 Route::get('/configure-meilisearch', function () {
     $client = new Client('http://195.35.48.107:7700', null); 
