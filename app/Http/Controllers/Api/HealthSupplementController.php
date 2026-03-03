@@ -249,7 +249,7 @@ class HealthSupplementController extends Controller
             Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
 
             $intent = PaymentIntent::create([
-                'amount' => $amount * 100, // cents
+                'amount' => $amount, // cents
                 'currency' => 'usd',
                 'metadata' => [
                     'integration_check' => 'accept_a_payment',
