@@ -250,7 +250,7 @@ class HealthSupplementController extends Controller
 
             $intent = PaymentIntent::create([
                 'amount' => $amount * 100, // cents
-                'currency' => $data['currency'] ?? 'ngn',
+                'currency' => 'usd',
                 'metadata' => [
                     'integration_check' => 'accept_a_payment',
                 ],
