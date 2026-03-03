@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
 
 class HealthSupplementController extends Controller
 {
@@ -149,6 +151,26 @@ class HealthSupplementController extends Controller
             'items.*.price' => ['required', 'numeric', 'min:0'],
         ]);
 
+        // If payment provider is Stripe, verify the PaymentIntent status before creating order
+        $payment = $data['payment'] ?? [];
+        if (isset($payment['provider']) && $payment['provider'] === 'stripe') {
+            if (empty($payment['reference'])) {
+                return response()->json(['message' => 'Missing payment reference for Stripe'], 400);
+            }
+
+            // Verify intent with Stripe
+            try {
+                Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+                $intent = PaymentIntent::retrieve($payment['reference']);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Unable to verify Stripe payment', 'error' => $e->getMessage()], 400);
+            }
+
+            if (! isset($intent->status) || $intent->status !== 'succeeded') {
+                return response()->json(['message' => 'Stripe payment not completed'], 402);
+            }
+        }
+
         return DB::transaction(function () use ($data) {
             $customer = $data['customer'];
             $payment = $data['payment'] ?? [];
@@ -199,6 +221,48 @@ class HealthSupplementController extends Controller
 
         return response()->json([
             'order' => $order,
+        ]);
+    }
+
+    /**
+     * Create a Stripe PaymentIntent for the given items payload.
+     * Expects same items payload as requestProductsAsOrder.
+     * Returns client_secret to be used by frontend Stripe.js.
+     */
+    public function createStripePaymentIntent(Request $request)
+    {
+        $data = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'integer', 'exists:health_supplement_products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'currency' => ['sometimes', 'string', 'max:10'],
+        ]);
+
+        $total = collect($data['items'])->sum(function ($i) {
+            return ((int) $i['quantity']) * ((float) $i['price']);
+        });
+
+        $amount = (int) round($total);
+
+        try {
+            Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+
+            $intent = PaymentIntent::create([
+                'amount' => $amount * 100, // cents
+                'currency' => $data['currency'] ?? 'ngn',
+                'metadata' => [
+                    'integration_check' => 'accept_a_payment',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Stripe error', 'error' => $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'client_secret' => $intent->client_secret,
+            'payment_intent_id' => $intent->id,
+            'amount' => $amount,
         ]);
     }
 }
