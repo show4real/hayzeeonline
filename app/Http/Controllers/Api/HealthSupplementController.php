@@ -262,6 +262,7 @@ class HealthSupplementController extends Controller
         return response()->json([
             'client_secret' => $intent->client_secret,
             'payment_intent_id' => $intent->id,
+            'reference' => $intent->id,
             'amount' => $amount,
         ]);
     }
