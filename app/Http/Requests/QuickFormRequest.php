@@ -16,7 +16,7 @@ class QuickFormRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'idCard' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'idCard' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         ];
     }
 
