@@ -152,7 +152,9 @@ class HealthSupplementController extends Controller
         ]);
 
         // If payment provider is Stripe, verify the PaymentIntent status before creating order
-        $payment = $data['payment'] ?? [];
+    // When no payment object is provided, assume a manual bank transfer was made
+    // and still allow the order to be created.
+    $payment = $data['payment'] ?? ['provider' => 'transfer', 'status' => 'pending'];
         if (isset($payment['provider']) && $payment['provider'] === 'stripe') {
             if (empty($payment['reference'])) {
                 return response()->json(['message' => 'Missing payment reference for Stripe'], 400);
@@ -173,7 +175,7 @@ class HealthSupplementController extends Controller
 
         return DB::transaction(function () use ($data) {
             $customer = $data['customer'];
-            $payment = $data['payment'] ?? [];
+            $payment = $data['payment'] ?? ['provider' => 'transfer', 'status' => 'pending'];
 
             $total = collect($data['items'])->sum(function ($i) {
                 return ((int) $i['quantity']) * ((float) $i['price']);
