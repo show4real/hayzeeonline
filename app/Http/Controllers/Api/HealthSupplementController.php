@@ -284,20 +284,20 @@ class HealthSupplementController extends Controller
      *   "currency": "usd"
      * }
      */
-    public function createStripePaymentInvoice(Request $request)
+   public function createStripePaymentInvoice(Request $request)
 {
     $data = $request->validate([
-        'customer.name' => ['required', 'string', 'max:255'],
-        'customer.email' => ['required', 'email', 'max:255'],
+        'customer.name' => ['required','string','max:255'],
+        'customer.email' => ['required','email','max:255'],
 
-        'items' => ['required', 'array', 'min:1'],
-        'items.*.product_id' => ['required', 'integer', 'exists:health_supplement_products,id'],
-        'items.*.quantity' => ['required', 'integer', 'min:1'],
-        'items.*.price' => ['required', 'numeric', 'min:0'],
-        'currency' => ['sometimes', 'string', 'max:10'],
+        'items' => ['required','array','min:1'],
+        'items.*.product_id' => ['required','integer','exists:health_supplement_products,id'],
+        'items.*.quantity' => ['required','integer','min:1'],
+        'items.*.price' => ['required','numeric','min:0'],
+        'currency' => ['sometimes','string','max:10'],
     ]);
 
-    $currency = strtolower((string) ($data['currency'] ?? 'usd'));
+    $currency = strtolower($data['currency'] ?? 'usd');
 
     try {
 
@@ -305,7 +305,7 @@ class HealthSupplementController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | 1. Create Stripe Customer
+        | 1. Create Customer
         |--------------------------------------------------------------------------
         */
 
@@ -316,11 +316,11 @@ class HealthSupplementController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | 2. Generate Virtual Bank Account (Funding Instructions)
+        | 2. Create Virtual Bank Account
         |--------------------------------------------------------------------------
         */
 
-        $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET_KEY'));
+        $stripe = new StripeClient(env('STRIPE_SECRET_KEY'));
 
         $fundingInstructions = $stripe->customers->createFundingInstructions(
             $customer->id,
@@ -333,12 +333,6 @@ class HealthSupplementController extends Controller
             ]
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Extract bank account details
-        |--------------------------------------------------------------------------
-        */
-
         $bankDetails = $fundingInstructions->bank_transfer->financial_addresses[0]->aba ?? null;
 
         $accountNumber = $bankDetails->account_number ?? null;
@@ -346,67 +340,67 @@ class HealthSupplementController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | 3. Create Invoice Items
+        | 3. Create Invoice FIRST
+        |--------------------------------------------------------------------------
+        */
+
+        $invoice = Invoice::create([
+            'customer' => $customer->id,
+            'collection_method' => 'send_invoice',
+            'days_until_due' => 3,
+            'currency' => $currency,
+
+            'payment_settings' => [
+                'payment_method_types' => ['customer_balance'],
+                'payment_method_options' => [
+                    'customer_balance' => [
+                        'funding_type' => 'bank_transfer',
+                        'bank_transfer' => [
+                            'type' => 'us_bank_transfer'
+                        ]
+                    ]
+                ]
+            ],
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 4. Attach Invoice Items
         |--------------------------------------------------------------------------
         */
 
         foreach ($data['items'] as $item) {
 
             $product = HealthSupplementProduct::find($item['product_id']);
-            $description = $product ? $product->name : 'Product';
 
-            $unitAmount = (int) round(((float)$item['price']) * 100);
-            $quantity = (int) $item['quantity'];
+            $unitAmount = (int) round($item['price'] * 100);
 
             InvoiceItem::create([
                 'customer' => $customer->id,
+                'invoice' => $invoice->id,
+                'description' => $product?->name ?? 'Product',
                 'currency' => $currency,
-                'description' => $description,
-                'amount' => $unitAmount * $quantity,
+                'unit_amount' => $unitAmount,
+                'quantity' => $item['quantity'],
             ]);
         }
 
         /*
         |--------------------------------------------------------------------------
-        | 4. Create Invoice with Bank Transfer Enabled
+        | 5. Finalize Invoice
         |--------------------------------------------------------------------------
         */
 
-        $invoice = \Stripe\Invoice::create([
-            'customer' => $customer->id,
-            'collection_method' => 'send_invoice',
-            'days_until_due' => 3,
-
-            'payment_settings' => [
-                'payment_method_types' => ['customer_balance'],
-                'payment_method_options' => [
-                    'customer_balance' => [
-                        'funding_type' => 'bank_transfer',   // REQUIRED
-                        'bank_transfer' => [
-                            'type' => 'us_bank_transfer'
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-
-      
-
-        /*
-        |--------------------------------------------------------------------------
-        | 5. Finalize and Send Invoice
-        |--------------------------------------------------------------------------
-        */
-
+        $invoice = Invoice::retrieve($invoice->id);
         $invoice = $invoice->finalizeInvoice();
 
         if ($invoice->status === 'open') {
-            $invoice = $invoice->sendInvoice();
+            $invoice->sendInvoice();
         }
 
         /*
         |--------------------------------------------------------------------------
-        | 6. Return response
+        | 6. Response
         |--------------------------------------------------------------------------
         */
 
@@ -416,11 +410,13 @@ class HealthSupplementController extends Controller
             'invoice_id' => $invoice->id,
             'status' => $invoice->status,
 
+            'amount_due' => $invoice->amount_due / 100,
+
             'hosted_invoice_url' => $invoice->hosted_invoice_url,
             'invoice_pdf' => $invoice->invoice_pdf,
 
             'bank_transfer_details' => [
-                'bank_name' => 'Stripe Bank',
+                'bank_name' => 'Stripe Virtual Bank',
                 'account_number' => $accountNumber,
                 'routing_number' => $routingNumber,
                 'reference' => $invoice->id
@@ -428,25 +424,10 @@ class HealthSupplementController extends Controller
 
         ], 201);
 
-    } catch (ApiErrorException $e) {
-
-        Log::error('Stripe Invoice Error', [
-            'message' => $e->getMessage()
-        ]);
+    } catch (\Exception $e) {
 
         return response()->json([
             'message' => 'Stripe error',
-            'error' => $e->getMessage()
-        ], 500);
-
-    } catch (\Exception $e) {
-
-        Log::error('Server Error', [
-            'message' => $e->getMessage()
-        ]);
-
-        return response()->json([
-            'message' => 'Server error',
             'error' => $e->getMessage()
         ], 500);
     }
