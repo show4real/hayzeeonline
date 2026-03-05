@@ -285,118 +285,169 @@ class HealthSupplementController extends Controller
      * }
      */
     public function createStripePaymentInvoice(Request $request)
-    {
-        $data = $request->validate([
-            'customer.name' => ['required', 'string', 'max:255'],
-            'customer.email' => ['required', 'email', 'max:255'],
+{
+    $data = $request->validate([
+        'customer.name' => ['required', 'string', 'max:255'],
+        'customer.email' => ['required', 'email', 'max:255'],
 
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:health_supplement_products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.price' => ['required', 'numeric', 'min:0'],
-            'currency' => ['sometimes', 'string', 'max:10'],
-        ]);
+        'items' => ['required', 'array', 'min:1'],
+        'items.*.product_id' => ['required', 'integer', 'exists:health_supplement_products,id'],
+        'items.*.quantity' => ['required', 'integer', 'min:1'],
+        'items.*.price' => ['required', 'numeric', 'min:0'],
+        'currency' => ['sometimes', 'string', 'max:10'],
+    ]);
 
-        // Compute total from payload
-        $total = collect($data['items'])->sum(function ($i) {
-            return ((int) $i['quantity']) * ((float) $i['price']);
-        });
-
-        $amount = (int) round($total);
-        $currency = strtolower((string) ($data['currency'] ?? 'usd'));
+    $currency = strtolower((string) ($data['currency'] ?? 'usd'));
 
     try {
-            $secret = env('STRIPE_SECRET_KEY');
-            if (! is_string($secret) || $secret === '') {
-                return response()->json(['message' => 'Stripe is not configured'], 500);
-            }
-            Stripe::setApiKey($secret);
 
-            $customer = Customer::create([
-                'name' => $data['customer']['name'],
-                'email' => $data['customer']['email'],
-            ]);
+        Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
 
-            // Create invoice items
-            foreach ($data['items'] as $item) {
-                $product = HealthSupplementProduct::query()->find($item['product_id']);
-                $desc = $product ? $product->name : ('Product #' . $item['product_id']);
+        /*
+        |--------------------------------------------------------------------------
+        | 1. Create Stripe Customer
+        |--------------------------------------------------------------------------
+        */
 
-                $unitAmount = (int) round(((float) $item['price']));
-                $quantity = (int) $item['quantity'];
-                $lineAmount = (int) round($unitAmount * $quantity);
+        $customer = Customer::create([
+            'name' => $data['customer']['name'],
+            'email' => $data['customer']['email'],
+        ]);
 
-                InvoiceItem::create([
-                    'customer' => $customer->id,
-                    'currency' => $currency,
-                    'description' => $desc,
-                    // Use total line `amount` to keep behavior consistent across Stripe API versions.
-                    // Amount is in the smallest currency unit (e.g. cents/kobo).
-                    'amount' => $lineAmount,
-                ]);
-            }
+        /*
+        |--------------------------------------------------------------------------
+        | 2. Generate Virtual Bank Account (Funding Instructions)
+        |--------------------------------------------------------------------------
+        */
 
-            // Create invoice - in "send_invoice" mode Stripe will email the customer.
-            $invoice = Invoice::create([
-                'customer' => $customer->id,
-                'collection_method' => 'send_invoice',
-                // Give customer time to pay (in days)
-                'days_until_due' => 3,
-                'metadata' => [
-                    'source' => 'health_supplements',
-                    'payment_method' => 'bank_transfer',
+        $fundingInstructions = Customer::createFundingInstructions(
+            $customer->id,
+            [
+                'funding_type' => 'bank_transfer',
+                'currency' => $currency,
+                'bank_transfer' => [
+                    'type' => 'us_bank_transfer'
                 ],
-            ]);
+            ]
+        );
 
-            // Finalize + send email
-            $invoice = $invoice->finalizeInvoice();
-            // Only attempt email send if it's still open; Stripe won't re-send if already paid.
-            if (isset($invoice->status) && $invoice->status === 'open') {
-                $invoice = $invoice->sendInvoice();
-            }
+        /*
+        |--------------------------------------------------------------------------
+        | Extract bank account details
+        |--------------------------------------------------------------------------
+        */
 
-            return response()->json([
-                'message' => 'Invoice created and sent',
-                'invoice_id' => $invoice->id,
-                'reference' => $invoice->id,
-                'hosted_invoice_url' => $invoice->hosted_invoice_url ?? null,
-                'invoice_pdf' => $invoice->invoice_pdf ?? null,
-                'amount' => $amount,
+        $bankDetails = $fundingInstructions->bank_transfer->financial_addresses[0]->aba ?? null;
+
+        $accountNumber = $bankDetails->account_number ?? null;
+        $routingNumber = $bankDetails->routing_number ?? null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | 3. Create Invoice Items
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($data['items'] as $item) {
+
+            $product = HealthSupplementProduct::find($item['product_id']);
+            $description = $product ? $product->name : 'Product';
+
+            $unitAmount = (int) round(((float)$item['price']) * 100);
+            $quantity = (int) $item['quantity'];
+
+            InvoiceItem::create([
+                'customer' => $customer->id,
                 'currency' => $currency,
-                'status' => $invoice->status ?? null,
-            ], 201);
-        } catch (ApiErrorException $e) {
-            $stripeReqId = method_exists($e, 'getRequestId') ? $e->getRequestId() : null;
-            $stripeError = method_exists($e, 'getStripeError') ? $e->getStripeError() : null;
-
-            Log::error('Stripe invoice error (health_supplements)', [
-                'message' => $e->getMessage(),
-                'request_id' => $stripeReqId,
-                'stripe_error_type' => $stripeError->type ?? null,
-                'stripe_error_code' => $stripeError->code ?? null,
-                'stripe_error_param' => $stripeError->param ?? null,
-                'currency' => $currency,
-                'amount' => $amount,
-                'customer_email' => $data['customer']['email'] ?? null,
+                'description' => $description,
+                'amount' => $unitAmount * $quantity,
             ]);
-
-            // Return debugging-friendly details (safe for frontend).
-            return response()->json([
-                'message' => 'Stripe error',
-                'error' => $e->getMessage(),
-                'stripe_request_id' => $stripeReqId,
-                'stripe_code' => $stripeError->code ?? null,
-                'stripe_type' => $stripeError->type ?? null,
-            ], 500);
-        } catch (\Exception $e) {
-            Log::error('Invoice endpoint error (health_supplements)', [
-                'message' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'message' => 'Server error',
-                'error' => $e->getMessage(),
-            ], 500);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 4. Create Invoice with Bank Transfer Enabled
+        |--------------------------------------------------------------------------
+        */
+
+        $invoice = Invoice::create([
+            'customer' => $customer->id,
+            'collection_method' => 'send_invoice',
+            'days_until_due' => 3,
+
+            'payment_settings' => [
+                'payment_method_types' => ['customer_balance'],
+                'payment_method_options' => [
+                    'customer_balance' => [
+                        'bank_transfer' => [
+                            'type' => 'us_bank_transfer'
+                        ],
+                    ],
+                ],
+            ],
+
+            'metadata' => [
+                'source' => 'health_supplements'
+            ]
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 5. Finalize and Send Invoice
+        |--------------------------------------------------------------------------
+        */
+
+        $invoice = $invoice->finalizeInvoice();
+
+        if ($invoice->status === 'open') {
+            $invoice = $invoice->sendInvoice();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 6. Return response
+        |--------------------------------------------------------------------------
+        */
+
+        return response()->json([
+            'message' => 'Invoice created successfully',
+
+            'invoice_id' => $invoice->id,
+            'status' => $invoice->status,
+
+            'hosted_invoice_url' => $invoice->hosted_invoice_url,
+            'invoice_pdf' => $invoice->invoice_pdf,
+
+            'bank_transfer_details' => [
+                'bank_name' => 'Stripe Bank',
+                'account_number' => $accountNumber,
+                'routing_number' => $routingNumber,
+                'reference' => $invoice->id
+            ]
+
+        ], 201);
+
+    } catch (ApiErrorException $e) {
+
+        Log::error('Stripe Invoice Error', [
+            'message' => $e->getMessage()
+        ]);
+
+        return response()->json([
+            'message' => 'Stripe error',
+            'error' => $e->getMessage()
+        ], 500);
+
+    } catch (\Exception $e) {
+
+        Log::error('Server Error', [
+            'message' => $e->getMessage()
+        ]);
+
+        return response()->json([
+            'message' => 'Server error',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 }
