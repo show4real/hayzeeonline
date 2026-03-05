@@ -17,6 +17,7 @@ use Stripe\PaymentIntent;
 use Stripe\Customer;
 use Stripe\Invoice;
 use Stripe\InvoiceItem;
+use Stripe\StripeClient;
 use Stripe\Exception\ApiErrorException;
 
 class HealthSupplementController extends Controller
