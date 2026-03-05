@@ -328,7 +328,7 @@ class HealthSupplementController extends Controller
                     'customer' => $customer->id,
                     'currency' => $currency,
                     'description' => $desc,
-                    'unit_amount' => $unitAmount,
+                    'unit_amount_decimal' => $unitAmount,
                     'quantity' => $quantity,
                 ]);
             }
