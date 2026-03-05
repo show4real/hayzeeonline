@@ -329,8 +329,9 @@ class HealthSupplementController extends Controller
                     'customer' => $customer->id,
                     'currency' => $currency,
                     'description' => $desc,
-                    // Stripe amount is in the smallest unit (e.g. cents).
-                    'unit_amount' => $unitAmount,
+                    // This Stripe account/API version expects unit_amount_decimal.
+                    // Stripe amount is in the smallest unit (e.g. cents) for most currencies.
+                    'unit_amount_decimal' => (string) $unitAmount,
                     'quantity' => $quantity,
                 ]);
             }
