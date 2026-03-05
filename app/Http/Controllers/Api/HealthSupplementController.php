@@ -372,7 +372,7 @@ class HealthSupplementController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $invoice = Invoice::create([
+        $invoice = \Stripe\Invoice::create([
             'customer' => $customer->id,
             'collection_method' => 'send_invoice',
             'days_until_due' => 3,
@@ -381,17 +381,16 @@ class HealthSupplementController extends Controller
                 'payment_method_types' => ['customer_balance'],
                 'payment_method_options' => [
                     'customer_balance' => [
+                        'funding_type' => 'bank_transfer',   // REQUIRED
                         'bank_transfer' => [
                             'type' => 'us_bank_transfer'
                         ],
                     ],
                 ],
             ],
-
-            'metadata' => [
-                'source' => 'health_supplements'
-            ]
         ]);
+
+      
 
         /*
         |--------------------------------------------------------------------------
