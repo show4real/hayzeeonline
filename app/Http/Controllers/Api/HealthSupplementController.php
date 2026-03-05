@@ -378,7 +378,7 @@ class HealthSupplementController extends Controller
             InvoiceItem::create([
                 'customer' => $customer->id,
                 'invoice' => $invoice->id,
-                'description' => $product?->name ?? 'Product',
+                'description' => $product->name ?? 'Product',
                 'currency' => $currency,
                 'unit_amount' => $unitAmount,
                 'quantity' => $item['quantity'],
