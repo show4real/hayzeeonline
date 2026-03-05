@@ -68,6 +68,8 @@ Route::controller(HealthSupplementController::class)->group(function () {
     Route::post('health-supplements/orders', 'requestProductsAsOrder');
     // Create a Stripe PaymentIntent for the checkout amount
     Route::post('health-supplements/create-payment-intent', 'createStripePaymentIntent');
+    // Create + send a Stripe Invoice to customer's email (bank transfer flow)
+    Route::post('health-supplements/create-invoice', 'createStripePaymentInvoice');
 
     // Retrieve order info + its details
     Route::get('health-supplements/orders/{id}', 'retrieveOrderInfo');

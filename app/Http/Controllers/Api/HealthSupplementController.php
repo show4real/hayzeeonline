@@ -11,8 +11,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use Stripe\Customer;
+use Stripe\Invoice;
+use Stripe\InvoiceItem;
 
 class HealthSupplementController extends Controller
 {
@@ -267,5 +271,98 @@ class HealthSupplementController extends Controller
             'reference' => $intent->id,
             'amount' => $amount,
         ]);
+    }
+
+    /**
+     * Create and send a Stripe Invoice to customer's email for bank transfer payments.
+     *
+     * Payload format (example):
+     * {
+     *   "customer": {"name":"Amina Musa","email":"amina@example.com"},
+     *   "items": [{"product_id": 1, "quantity": 2, "price": 15000}],
+     *   "currency": "usd"
+     * }
+     */
+    public function createStripePaymentInvoice(Request $request)
+    {
+        $data = $request->validate([
+            'customer.name' => ['required', 'string', 'max:255'],
+            'customer.email' => ['required', 'email', 'max:255'],
+
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'integer', 'exists:health_supplement_products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'currency' => ['sometimes', 'string', 'max:10'],
+        ]);
+
+        // Compute total from payload
+        $total = collect($data['items'])->sum(function ($i) {
+            return ((int) $i['quantity']) * ((float) $i['price']);
+        });
+
+        $amount = (int) round($total);
+        $currency = strtolower((string) ($data['currency'] ?? 'usd'));
+
+        try {
+            $secret = env('STRIPE_SECRET_KEY');
+            if (! is_string($secret) || $secret === '') {
+                return response()->json(['message' => 'Stripe is not configured'], 500);
+            }
+            Stripe::setApiKey($secret);
+
+            $customer = Customer::create([
+                'name' => $data['customer']['name'],
+                'email' => $data['customer']['email'],
+            ]);
+
+            // Create invoice items
+            foreach ($data['items'] as $item) {
+                $product = HealthSupplementProduct::query()->find($item['product_id']);
+                $desc = $product ? $product->name : ('Product #' . $item['product_id']);
+
+                $unitAmount = (int) round(((float) $item['price']));
+                $quantity = (int) $item['quantity'];
+
+                InvoiceItem::create([
+                    'customer' => $customer->id,
+                    'currency' => $currency,
+                    'description' => $desc,
+                    'unit_amount' => $unitAmount,
+                    'quantity' => $quantity,
+                ]);
+            }
+
+            // Create invoice - in "send_invoice" mode Stripe will email the customer.
+            $invoice = Invoice::create([
+                'customer' => $customer->id,
+                'collection_method' => 'send_invoice',
+                // Give customer time to pay (in days)
+                'days_until_due' => 3,
+                'metadata' => [
+                    'source' => 'health_supplements',
+                    'payment_method' => 'bank_transfer',
+                ],
+            ]);
+
+            // Finalize + send email
+            $invoice = $invoice->finalizeInvoice();
+            $invoice = $invoice->sendInvoice();
+
+            return response()->json([
+                'message' => 'Invoice created and sent',
+                'invoice_id' => $invoice->id,
+                'reference' => $invoice->id,
+                'hosted_invoice_url' => $invoice->hosted_invoice_url ?? null,
+                'invoice_pdf' => $invoice->invoice_pdf ?? null,
+                'amount' => $amount,
+                'currency' => $currency,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Stripe error',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
