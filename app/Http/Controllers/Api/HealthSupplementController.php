@@ -11,12 +11,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Customer;
 use Stripe\Invoice;
 use Stripe\InvoiceItem;
+use Stripe\Exception\ApiErrorException;
 
 class HealthSupplementController extends Controller
 {
@@ -304,7 +305,7 @@ class HealthSupplementController extends Controller
         $amount = (int) round($total);
         $currency = strtolower((string) ($data['currency'] ?? 'usd'));
 
-        try {
+    try {
             $secret = env('STRIPE_SECRET_KEY');
             if (! is_string($secret) || $secret === '') {
                 return response()->json(['message' => 'Stripe is not configured'], 500);
@@ -328,7 +329,8 @@ class HealthSupplementController extends Controller
                     'customer' => $customer->id,
                     'currency' => $currency,
                     'description' => $desc,
-                    'unit_amount_decimal' => $unitAmount,
+                    // Stripe amount is in the smallest unit (e.g. cents).
+                    'unit_amount' => $unitAmount,
                     'quantity' => $quantity,
                 ]);
             }
@@ -358,9 +360,36 @@ class HealthSupplementController extends Controller
                 'amount' => $amount,
                 'currency' => $currency,
             ], 201);
-        } catch (\Exception $e) {
+        } catch (ApiErrorException $e) {
+            $stripeReqId = method_exists($e, 'getRequestId') ? $e->getRequestId() : null;
+            $stripeError = method_exists($e, 'getStripeError') ? $e->getStripeError() : null;
+
+            Log::error('Stripe invoice error (health_supplements)', [
+                'message' => $e->getMessage(),
+                'request_id' => $stripeReqId,
+                'stripe_error_type' => $stripeError->type ?? null,
+                'stripe_error_code' => $stripeError->code ?? null,
+                'stripe_error_param' => $stripeError->param ?? null,
+                'currency' => $currency,
+                'amount' => $amount,
+                'customer_email' => $data['customer']['email'] ?? null,
+            ]);
+
+            // Return debugging-friendly details (safe for frontend).
             return response()->json([
                 'message' => 'Stripe error',
+                'error' => $e->getMessage(),
+                'stripe_request_id' => $stripeReqId,
+                'stripe_code' => $stripeError->code ?? null,
+                'stripe_type' => $stripeError->type ?? null,
+            ], 500);
+        } catch (\Exception $e) {
+            Log::error('Invoice endpoint error (health_supplements)', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Server error',
                 'error' => $e->getMessage(),
             ], 500);
         }
