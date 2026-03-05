@@ -320,11 +320,13 @@ class HealthSupplementController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $fundingInstructions = Customer::createFundingInstructions(
+        $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET_KEY'));
+
+        $fundingInstructions = $stripe->customers->createFundingInstructions(
             $customer->id,
             [
                 'funding_type' => 'bank_transfer',
-                'currency' => $currency,
+                'currency' => 'usd',
                 'bank_transfer' => [
                     'type' => 'us_bank_transfer'
                 ],
