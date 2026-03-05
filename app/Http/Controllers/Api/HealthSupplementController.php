@@ -324,15 +324,15 @@ class HealthSupplementController extends Controller
 
                 $unitAmount = (int) round(((float) $item['price']));
                 $quantity = (int) $item['quantity'];
+                $lineAmount = (int) round($unitAmount * $quantity);
 
                 InvoiceItem::create([
                     'customer' => $customer->id,
                     'currency' => $currency,
                     'description' => $desc,
-                    // This Stripe account/API version expects unit_amount_decimal.
-                    // Stripe amount is in the smallest unit (e.g. cents) for most currencies.
-                    'unit_amount_decimal' => (string) $unitAmount,
-                    'quantity' => $quantity,
+                    // Use total line `amount` to keep behavior consistent across Stripe API versions.
+                    // Amount is in the smallest currency unit (e.g. cents/kobo).
+                    'amount' => $lineAmount,
                 ]);
             }
 
@@ -350,7 +350,10 @@ class HealthSupplementController extends Controller
 
             // Finalize + send email
             $invoice = $invoice->finalizeInvoice();
-            $invoice = $invoice->sendInvoice();
+            // Only attempt email send if it's still open; Stripe won't re-send if already paid.
+            if (isset($invoice->status) && $invoice->status === 'open') {
+                $invoice = $invoice->sendInvoice();
+            }
 
             return response()->json([
                 'message' => 'Invoice created and sent',
@@ -360,6 +363,7 @@ class HealthSupplementController extends Controller
                 'invoice_pdf' => $invoice->invoice_pdf ?? null,
                 'amount' => $amount,
                 'currency' => $currency,
+                'status' => $invoice->status ?? null,
             ], 201);
         } catch (ApiErrorException $e) {
             $stripeReqId = method_exists($e, 'getRequestId') ? $e->getRequestId() : null;
