@@ -381,7 +381,7 @@ class HealthSupplementController extends Controller
                 'invoice' => $invoice->id,
                 'description' => $product->name ?? 'Product',
                 'currency' => $currency,
-                'unit_amount' => $unitAmount,
+                'unit_amount' => $unitAmount/100,
                 'quantity' => $item['quantity'],
             ]);
         }
