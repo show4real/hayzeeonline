@@ -20,10 +20,10 @@ class ClientConsentRequest extends FormRequest
             'consentClientEmail' => ['required', 'email', 'max:255'],
             'consentClientAddress' => ['required', 'string', 'max:2000'],
 
-            'fixedFeeAmount' => ['required', 'string', 'max:50'],
+            'fixedFeeAmount' => ['sometimes', 'string', 'max:50'],
 
             // Sent as "true"/"false" strings in multipart/form-data.
-            'agencyFeeConsent' => ['required', Rule::in(['true', 'false', '1', '0', 1, 0, true, false])],
+            'agencyFeeConsent' => ['sometimes', Rule::in(['true', 'false', '1', '0', 1, 0, true, false])],
 
             'agencyFeePaymentMethod' => ['nullable', 'string', 'max:100'],
             'agencyFeeAmountPaid' => ['nullable', 'string', 'max:50'],
