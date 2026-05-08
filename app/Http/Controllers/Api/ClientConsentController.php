@@ -87,8 +87,8 @@ class ClientConsentController extends Controller
             'consent_client_email' => Str::lower($data['consentClientEmail']),
             'consent_client_address' => $data['consentClientAddress'],
 
-            'fixed_fee_amount' => $data['fixedFeeAmount'],
-            'agency_fee_consent' => filter_var($data['agencyFeeConsent'], FILTER_VALIDATE_BOOLEAN),
+            'fixed_fee_amount' => $data['fixedFeeAmount'] ?? null,
+            'agency_fee_consent' => isset($data['agencyFeeConsent']) ? filter_var($data['agencyFeeConsent'], FILTER_VALIDATE_BOOLEAN) : null,
             'agency_fee_payment_method' => $data['agencyFeePaymentMethod'] ?? null,
             'agency_fee_amount_paid' => $data['agencyFeeAmountPaid'] ?? null,
 
