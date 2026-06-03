@@ -96,11 +96,15 @@ class Product extends Model
     {
         $searchQuery = trim($filter);
         $requestData = ['name', 'description'];
+        // Only apply the WHERE filtering here. The default ordering lives in
+        // scopeSort's fallback so that an explicit sort always takes precedence
+        // (Eloquent appends order clauses, so ordering set here would otherwise
+        // win over the user's chosen sort).
         $query->when($filter != '', function ($query) use ($requestData, $searchQuery) {
             return $query->where(function ($q) use ($requestData, $searchQuery) {
                 foreach ($requestData as $field)
                     $q->orWhere($field, 'like', "%{$searchQuery}%");
-            })->orderByRaw("FIELD(availability,1) DESC")->orderBy("updated_at", "DESC");
+            });
         });
     }
 
@@ -108,9 +112,13 @@ class Product extends Model
     public function scopeSort($query, $filter)
     {
         if ($filter == 'high-price') {
-            return $query->orderBy('price', 'desc');
+            // Push NULL/0 prices to the bottom in both directions so unpriced
+            // items never crowd the top of the list.
+            return $query->orderByRaw('(price IS NULL OR price = 0) ASC')
+                ->orderBy('price', 'desc');
         } else if ($filter == 'low-price') {
-            return $query->orderBy('price', 'asc');
+            return $query->orderByRaw('(price IS NULL OR price = 0) ASC')
+                ->orderBy('price', 'asc');
         } else if ($filter == 'name-desc') {
             return $query->orderBy('name', 'desc');
         } else if ($filter == 'name-asc') {
@@ -122,7 +130,10 @@ class Product extends Model
         } else if ($filter == 'date-asc') {
             return $query->orderBy('created_at', 'asc');
         }
-        return $query;
+        // No explicit sort chosen: default to available items first, then most
+        // recently updated. (Previously this lived in scopeSearchAll.)
+        return $query->orderByRaw("FIELD(availability,1) DESC")
+            ->orderBy('updated_at', 'desc');
     }
 
 
