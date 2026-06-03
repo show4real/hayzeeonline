@@ -117,48 +117,18 @@ class ShopController extends Controller
     public function products(Request $request)
     {
 
-        // Accept the sort value under either key ('sort' here, 'sorting' on the
-        // other listing endpoints) so the front-end can use either.
-        $sort = $request->sort ?: $request->sorting;
-
-        $query = Product::searchAll($request->search_all)
+        $products = Product::sort($request->sort)
+        ->searchAll($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
-            ->filterByPrice($request->price[0], $request->price[1], $request->search_all);
-
-        // Apply ordering explicitly so the chosen sort is always the primary
-        // key. NULL/0 prices are pushed to the bottom so "low to high" doesn't
-        // open with unpriced items.
-        switch ($sort) {
-            case 'low-price':
-                $query->orderByRaw('(price IS NULL OR price = 0) ASC')->orderBy('price', 'asc');
-                break;
-            case 'high-price':
-                $query->orderByRaw('(price IS NULL OR price = 0) ASC')->orderBy('price', 'desc');
-                break;
-            case 'name-asc':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'name-desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'date-asc':
-                $query->orderBy('created_at', 'asc');
-                break;
-            case 'date-desc':
-                $query->orderBy('created_at', 'desc');
-                break;
-            default:
-                // No sort chosen: available items first, then most recent.
-                $query->orderByRaw('FIELD(availability,1) DESC')->orderBy('updated_at', 'desc');
-                break;
-        }
-
-        $products = $query->paginate($request->rows, ['*'], 'page', $request->page);
-
+            ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
+            ->orderByRaw("availability = 1 DESC")
+            //->inRandomOrder()
+            ->paginate($request->rows, ['*'], 'page', $request->page);
+    
 
         $youtube = Youtube::first()->youtubeid;
          $notice = Notice::first()->notice;
