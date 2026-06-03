@@ -95,14 +95,14 @@ class ShopController extends Controller
 
     public function laptopProducts(Request $request){
 
-        $products = Product::where('category_id', [26,27,28,29,30,38])
+        $products = Product::sort($request->sorting)
+            ->where('category_id', [26,27,28,29,30,38])
             ->searchAll($request->search_all)
             ->brand($request->brand)
             //->category($request->category)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
-            ->sort($request->sorting)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             //->orderByRaw("availability = 1 DESC")
             //->inRandomOrder()
@@ -141,20 +141,14 @@ class ShopController extends Controller
     {
 
 
-        $products = Product::
-            searchAll($request->search_all)
-            //->brand($request->brand)
-            //->category($request->category)
+        $products = Product::sort($request->sorting)
+            ->searchAll($request->search_all)
             ->catProduct($request->categoryslug)
             ->brandProduct($request->brandslug)
-            ->sort($request->sorting)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
-            //->orderByRaw("availability = 1 DESC")
-           
-            //->inRandomOrder()
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
         $youtube = Youtube::first()->youtubeid;
@@ -168,13 +162,12 @@ class ShopController extends Controller
     {
 
 
-        $products = Product::
-            searchAll($request->search_all)
+        $products = Product::sort($request->sorting)
+            ->searchAll($request->search_all)
             ->brand($request->brand)
             ->category($request->category)
             ->catProduct($request->categoryslug)
             ->brandProduct($request->brandslug)
-            ->sort($request->sorting)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
