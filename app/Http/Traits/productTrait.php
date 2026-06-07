@@ -19,22 +19,27 @@ trait productTrait
 
     public function singleUpload($image, $imageName, $rotation)
     {
+        $directory = public_path('images');
+        File::ensureDirectoryExists($directory);
 
         $compressedImage = Image::make($image);
-        $compressedImage->rotate(-$rotation)->save(public_path('images') . '/' . $imageName, 80);
+        $compressedImage->rotate(-$rotation)->save($directory . '/' . $imageName, 80);
 
         return response()->json(['message' => 'Image uploaded and compressed successfully']);
     }
 
     public function upload($images, $rotations, $product_id)
     {
+        $directory = public_path('detailedproducts');
+        File::ensureDirectoryExists($directory);
+
         foreach ($images as $index => $image) {
 
             $rotation =  $rotations[$index];
             $imageName = time() . $image->getClientOriginalName();
             $compressedImage = Image::make($image);
 
-            $compressedImage->rotate(-$rotation)->save(public_path('detailedproducts') . '/' . $imageName, 80);
+            $compressedImage->rotate(-$rotation)->save($directory . '/' . $imageName, 80);
 
             ProductImages::create([
                 'url' => URL::asset('detailedproducts/' . $imageName),
