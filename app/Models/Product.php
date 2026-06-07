@@ -46,7 +46,18 @@ class Product extends Model
         'processor',
         'other_sales',
         'slug',
-        'product_type'
+        'product_type',
+        'model',
+        'subtype',
+        'condition',
+        'number_of_cores',
+        'storage_type',
+        'display_size',
+        'graphics_card',
+        'graphics_card_memory',
+        'operating_system',
+        'color',
+        'exchange_possible'
     ];
 
     protected $appends = ['category', "stock", "image_hover", "new_price"];

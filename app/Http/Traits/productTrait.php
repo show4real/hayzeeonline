@@ -53,27 +53,40 @@ trait productTrait
 
     public function create($data, $imageName)
     {
-        // $imageUrl = URL::asset('images/' . $imageName);
-        // $product = Product::create([
-        //     'name' => $data['name'],
-        //     'description' => $data['description'],
-        //     'product_type' => $data['product_type'],
-        //     'price' => $data['price'],
-        //     'other_sales' => $data['other_sales'],
-        //     'availability' => $data['availability'],
-        //     'category_id' => $data['category'],
-        //     'brand_id' => $data['brand'],
-        //     'ram' => $data['ram'],
-        //     'storage' => $data['storage'],
-        //     'processor' => $data['processor'],
-        //     'slug' => $this->createSlug($data['name']),
-        //     'image' => $imageUrl,
-            
-
-        // ]);
-
         $imageUrl = URL::asset('images/' . $imageName);
+
         $product = new Product();
+        $this->fillProductAttributes($product, $data, $imageUrl);
+        $product->slug = $this->createSlug($data['name']);
+        $product->save();
+
+        $this->syncDescriptions($product, $data);
+
+        return $product;
+    }
+
+    public function updateProduct($request, $product, $imageName)
+    {
+        $imageUrl = URL::asset('images/' . $imageName);
+
+        $this->fillProductAttributes($product, $request, $imageUrl);
+        $product->created_at = now();
+        $product->updated_at = now();
+        $product->save();
+
+        if (! empty($request['labels'])) {
+            ProductDescription::where('product_id', $product->id)->delete();
+            $this->syncDescriptions($product, $request);
+        }
+
+        return $product;
+    }
+
+    /**
+     * Map an incoming request/array payload onto a Product instance.
+     */
+    private function fillProductAttributes(Product $product, $data, $imageUrl)
+    {
         $product->name = $data['name'];
         $product->description = $data['description'];
         $product->product_type = $data['product_type'];
@@ -83,110 +96,39 @@ trait productTrait
         $product->category_id = $data['category'];
         $product->brand_id = $data['brand'];
         $product->ram = $data['ram'];
-        $product->storage = $data['storage'];
+        $product->storage = $data['storage_capacity'] ?? $data['storage'] ?? null;
         $product->processor = $data['processor'];
-        $product->slug = $this->createSlug($data['name']);
+        $product->model = $data['model'] ?? null;
+        $product->subtype = $data['subtype'] ?? null;
+        $product->condition = $data['condition'] ?? null;
+        $product->number_of_cores = $data['number_of_cores'] ?? null;
+        $product->storage_type = $data['storage_type'] ?? null;
+        $product->display_size = $data['display_size'] ?? null;
+        $product->graphics_card = $data['graphics_card'] ?? null;
+        $product->graphics_card_memory = $data['graphics_card_memory'] ?? null;
+        $product->operating_system = $data['operating_system'] ?? null;
+        $product->color = $data['color'] ?? null;
+        $product->exchange_possible = $data['exchange_possible'] ?? null;
         $product->image = $imageUrl;
-        $product->save();
-
-        $imageUrl = URL::asset('images/' . $imageName);
-
-        // $productData = [
-        //     'name' => $data['name'],
-        //     'description' => $data['description'],
-        //     'product_type' => $data['product_type'],
-        //     'price' => $data['price'],
-        //     'other_sales' => $data['other_sales'],
-        //     'availability' => $data['availability'],
-        //     'category_id' => $data['category'],
-        //     'brand_id' => $data['brand'],
-        //     'ram' => $data['ram'],
-        //     'storage' => $data['storage'],
-        //     'processor' => $data['processor'],
-        //     'slug' => $this->createSlug($data['name']),
-        //     'image' => $imageUrl,
-        // ];
-
-        // $product = Product::updateOrCreate(
-        //     [
-        //         'name' => $data['name'],
-        //         'ram' => $data['ram'],
-        //         'category_id' => $data['category'],
-        //         'brand_id' => $data['brand'],
-        //         'processor' => $data['processor'],
-        //         'storage' => $data['storage'],
-        //     ],
-        //     $productData
-        // );
-
-
-        if (count($data->labels) > 0) {
-            for ($i = 0; $i < count($data->labels); $i++) {
-                $productInfo = new ProductDescription();
-                $productInfo->product_id = $product->id;
-                $productInfo->label = $data->labels[$i];
-                $productInfo->values = $data->values[$i];
-                $productInfo->save();
-            }
-        }
 
         return $product;
     }
 
-    public function updateProduct($request, $product, $imageName)
+    /**
+     * Persist the label/value description rows for a product.
+     */
+    private function syncDescriptions(Product $product, $data)
     {
+        $labels = $data['labels'] ?? [];
+        $values = $data['values'] ?? [];
 
-        $name = $product->name;
-
-        $imageUrl = URL::asset('images/' . $imageName);
-        // $product->update([
-        //     'name' => $request['name'],
-        //     'description' => $request['description'],
-        //     'product_type' => $request['product_type'],
-        //     'price' => $request['price'],
-        //     'availability' => $request['availability'],
-        //     'category_id' => $request['category'],
-        //     'brand_id' => $request['brand'],
-        //     'ram' => $request['ram'],
-        //     'storage' => $request['storage'],
-        //     'processor' => $request['processor'],
-        //     'slug' => $this->createSlug($request['name']),
-        //     'image' => $imageUrl,
-        //     'other_sales' => $request['other_sales'],
-        //     'created_at' => now(),
-        //     'updated_at' => now()
-        // ]);
-        $product->name = $request['name'];
-        $product->description = $request['description'];
-        $product->product_type = $request['product_type'];
-        $product->price = $request['price'];
-        $product->availability = $request['availability'];
-        $product->category_id = $request['category'];
-        $product->brand_id = $request['brand'];
-        $product->ram = $request['ram'];
-        $product->storage = $request['storage'];
-        $product->processor = $request['processor'];
-        //$product->slug = $this->createSlug($request['name']);
-        $product->image = $imageUrl;
-        $product->other_sales = $request['other_sales'];
-        $product->created_at = now();
-        $product->updated_at = now();
-        $product->save();
-
-        if ($request->labels && count($request->labels) > 0) {
-
-            ProductDescription::where('product_id', $product->id)->delete();
-            if (count($request->labels) > 0) {
-                for ($i = 0; $i < count($request->labels); $i++) {
-                    $productInfo = new ProductDescription();
-                    $productInfo->product_id = $product->id;
-                    $productInfo->label = $request->labels[$i];
-                    $productInfo->values = $request->values[$i];
-                    $productInfo->save();
-                }
-            }
+        foreach ($labels as $i => $label) {
+            $productInfo = new ProductDescription();
+            $productInfo->product_id = $product->id;
+            $productInfo->label = $label;
+            $productInfo->values = $values[$i] ?? null;
+            $productInfo->save();
         }
-        return $product;
     }
 
     private function deletePreviousFile($product_id)
