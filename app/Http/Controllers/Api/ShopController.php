@@ -76,7 +76,12 @@ class ShopController extends Controller
         // Optionally limit the results to 10
         $products = $products->take(10);
 
-        return response()->json(compact('products'));
+        // Return the 2 best matching categories alongside the products.
+        $categories = Category::searchAll($request->search_all)
+            ->take(2)
+            ->get();
+
+        return response()->json(compact('products', 'categories'));
 
     }
 
