@@ -19,10 +19,10 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $products = Product::searchAll($request->search)
+        $products = Product::sort($request->sort)
+            ->searchAll($request->search)
             ->brand($request->brand)
             ->category($request->category)
-            ->sort($request->sort)
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
