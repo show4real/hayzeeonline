@@ -133,6 +133,7 @@ Route::controller(ShopController::class)->group(function () {
     Route::post('other_sales', 'otherSales');
     Route::post('quick_search', 'quickProductSearch');
     Route::post('laptop_products', 'laptopProducts');
+    Route::post('laptop_productsss', 'laptopProducts');
 
     Route::post('category/products', 'categoryProducts');
     Route::post('shop/products', 'shopProducts');
