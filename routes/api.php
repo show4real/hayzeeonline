@@ -164,7 +164,7 @@ Route::middleware(['auth:api', 'CheckReferrer'])->group(function () {
 
 Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
 
-    Route::controller(UserController::class)->group(function () {
+    Route::middleware('RestrictStaff')->controller(UserController::class)->group(function () {
         Route::post('users', 'index');
         Route::post('delete/user/{id}', 'delete');
     });
