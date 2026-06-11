@@ -11,7 +11,8 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $users = User::searchAll($request->search)
+        $users = User::staffAndAdmins()
+            ->searchAll($request->search)
             ->filterRole($request->role)
             ->paginate($request->rows, ['*'], 'page', $request->page);
 

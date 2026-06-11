@@ -31,6 +31,12 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         $user = auth()->user();
+
+        if (!in_array($user->admin, [1, 2])) {
+            auth()->logout();
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
         return response()->json([
             'user' => $user,
             'token' => $token,

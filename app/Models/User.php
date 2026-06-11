@@ -66,6 +66,14 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * Limit the query to admin (1) and staff (2) accounts only.
+     */
+    public function scopeStaffAndAdmins($query)
+    {
+        return $query->whereIn('admin', [1, 2]);
+    }
+
     public function scopeSearchAll($query, $filter)
     {
         $searchQuery = trim($filter);
