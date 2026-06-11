@@ -1,0 +1,84 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: hayzeeonline-php
+    container_name: hayzee_php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    # Inside the container, reach MySQL by its service name. These real env
+    # vars take precedence over .env, which is set to host-reachable values
+    # (127.0.0.1:3307) so the IDE / host artisan work too.
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - hayzee
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: hayzee_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - hayzee
+
+  mysql:
+    image: mysql:8.0
+    container_name: hayzee_mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-hayzee_pos}
+      MYSQL_USER: ${DB_USERNAME:-hayzee}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./hayzee_pos.sql:/docker-entrypoint-initdb.d/01-hayzee_pos.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - hayzee
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: hayzee_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 256M
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - hayzee
+
+networks:
+  hayzee:
+    driver: bridge
+
+volumes:
+  mysql_data:

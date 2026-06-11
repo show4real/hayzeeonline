@@ -46,7 +46,18 @@ class Product extends Model
         'processor',
         'other_sales',
         'slug',
-        'product_type'
+        'product_type',
+        'model',
+        'subtype',
+        'condition',
+        'number_of_cores',
+        'storage_type',
+        'display_size',
+        'graphics_card',
+        'graphics_card_memory',
+        'operating_system',
+        'color',
+        'exchange_possible'
     ];
 
     protected $appends = ['category', "stock", "image_hover", "new_price"];
@@ -192,6 +203,94 @@ class Product extends Model
     {
         if ($filter) {
             return $query->whereIn('ram', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeModel($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('model', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeSubtype($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('subtype', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeCondition($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('condition', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeNumberOfCores($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('number_of_cores', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeStorageType($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('storage_type', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeDisplaySize($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('display_size', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeGraphicsCard($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('graphics_card', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeGraphicsCardMemory($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('graphics_card_memory', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeOperatingSystem($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('operating_system', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeColor($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('color', $filter);
+        }
+        return $query;
+    }
+
+    public function scopeExchangePossible($query, $filter)
+    {
+        if ($filter) {
+            return $query->whereIn('exchange_possible', $filter);
         }
         return $query;
     }

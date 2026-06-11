@@ -33,6 +33,17 @@ class ShopController extends Controller
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
+            ->model($request->models)
+            ->subtype($request->subtypes)
+            ->condition($request->conditions)
+            ->numberOfCores($request->cores)
+            ->storageType($request->storage_types)
+            ->displaySize($request->display_sizes)
+            ->graphicsCard($request->graphics_cards)
+            ->graphicsCardMemory($request->graphics_card_memories)
+            ->operatingSystem($request->operating_systems)
+            ->color($request->colors)
+            ->exchangePossible($request->exchange)
             ->sort($request->sort)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->paginate(1000);
@@ -65,7 +76,12 @@ class ShopController extends Controller
         // Optionally limit the results to 10
         $products = $products->take(10);
 
-        return response()->json(compact('products'));
+        // Return the 2 best matching categories alongside the products.
+        $categories = Category::searchAll($request->search_all)
+            ->take(2)
+            ->get();
+
+        return response()->json(compact('products', 'categories'));
 
     }
 
@@ -103,6 +119,17 @@ class ShopController extends Controller
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
+            ->model($request->models)
+            ->subtype($request->subtypes)
+            ->condition($request->conditions)
+            ->numberOfCores($request->cores)
+            ->storageType($request->storage_types)
+            ->displaySize($request->display_sizes)
+            ->graphicsCard($request->graphics_cards)
+            ->graphicsCardMemory($request->graphics_card_memories)
+            ->operatingSystem($request->operating_systems)
+            ->color($request->colors)
+            ->exchangePossible($request->exchange)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             //->orderByRaw("availability = 1 DESC")
             //->inRandomOrder()
@@ -124,6 +151,17 @@ class ShopController extends Controller
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
+            ->model($request->models)
+            ->subtype($request->subtypes)
+            ->condition($request->conditions)
+            ->numberOfCores($request->cores)
+            ->storageType($request->storage_types)
+            ->displaySize($request->display_sizes)
+            ->graphicsCard($request->graphics_cards)
+            ->graphicsCardMemory($request->graphics_card_memories)
+            ->operatingSystem($request->operating_systems)
+            ->color($request->colors)
+            ->exchangePossible($request->exchange)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->orderByRaw("availability = 1 DESC")
             //->inRandomOrder()
@@ -148,6 +186,17 @@ class ShopController extends Controller
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
+            ->model($request->models)
+            ->subtype($request->subtypes)
+            ->condition($request->conditions)
+            ->numberOfCores($request->cores)
+            ->storageType($request->storage_types)
+            ->displaySize($request->display_sizes)
+            ->graphicsCard($request->graphics_cards)
+            ->graphicsCardMemory($request->graphics_card_memories)
+            ->operatingSystem($request->operating_systems)
+            ->color($request->colors)
+            ->exchangePossible($request->exchange)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
@@ -171,6 +220,17 @@ class ShopController extends Controller
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
+            ->model($request->models)
+            ->subtype($request->subtypes)
+            ->condition($request->conditions)
+            ->numberOfCores($request->cores)
+            ->storageType($request->storage_types)
+            ->displaySize($request->display_sizes)
+            ->graphicsCard($request->graphics_cards)
+            ->graphicsCardMemory($request->graphics_card_memories)
+            ->operatingSystem($request->operating_systems)
+            ->color($request->colors)
+            ->exchangePossible($request->exchange)
             ->filterByPrice($request->price[0], $request->price[1], $request->search_all)
             ->paginate($request->rows, ['*'], 'page', $request->page);
 
