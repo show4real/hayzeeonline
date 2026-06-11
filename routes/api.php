@@ -166,6 +166,8 @@ Route::middleware(['auth:api', 'CheckAdmin'])->group(function () {
 
     Route::middleware('RestrictStaff')->controller(UserController::class)->group(function () {
         Route::post('users', 'index');
+        Route::post('store/user', 'create');
+        Route::post('update/user/{id}', 'update');
         Route::post('delete/user/{id}', 'delete');
     });
 
