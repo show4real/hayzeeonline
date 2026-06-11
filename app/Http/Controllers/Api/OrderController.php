@@ -8,7 +8,6 @@ use App\Http\Traits\SignUpTrait;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\OrderProduct;
-use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -56,31 +55,6 @@ class OrderController extends Controller
                 $order_product->save();
             }
         }
-
-        $name = $request->name;
-        $email = $request->email;
-        $subject = 'Hayzee Computer Resources Order';
-
-        Mail::send(
-            'mail.cart',
-            [
-                'user' => $user,
-                'order_id' => $order->order_id,
-                'product_name' => $request->product_name,
-                'price' => $request->price,
-                'quantity' => $request->quantity,
-                'total_price' => $request->total_price,
-                'product_image' => $request->product_image
-            ],
-            function ($mail) use ($name, $subject) {
-                $mail->from('test@hayzeeonline.com', 'Hayzee Computer Resources');
-                $mail->to('hayzeecomputerresources@gmail.com', $name);
-                $mail->subject($subject);
-            }
-        );
-
-
-
 
         return response()->json(compact('order'));
     }
