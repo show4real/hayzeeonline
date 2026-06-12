@@ -117,7 +117,7 @@ class CategoryController extends Controller
     public function userCategories(Request $request)
     {
        $categories = Category::has('products')->with(['products'])->get()->each(function ($query) {
-            $query->setRelation('products', $query->products->take(4));
+            $query->setRelation('products', $query->products->take(12));
             return $query;
         })->take(100);
         $youtube = Youtube::first()->youtubeid;
