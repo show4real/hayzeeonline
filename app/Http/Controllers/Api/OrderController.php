@@ -16,6 +16,12 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $orders = Order::searchAll($request->search)
+            ->when($request->payment_type === 'paid', function ($query) {
+                $query->whereNotNull('payment_reference');
+            })
+            ->when($request->payment_type === 'request', function ($query) {
+                $query->whereNull('payment_reference');
+            })
             ->latest()
             ->with('user')
             ->with('products')
