@@ -35,6 +35,7 @@ class Product extends Model
     protected $fillable = [
         'name',
         'price',
+        'new_price',
         'description',
         'image',
         'category_id',
@@ -80,6 +81,13 @@ class Product extends Model
 
 
      public function getNewpriceAttribute(){
+        // A manually entered new price (set when the product is added/edited)
+        // always takes precedence over the percentage-based PriceEdit system.
+        $manualNewPrice = $this->attributes['new_price'] ?? null;
+        if (! is_null($manualNewPrice) && $manualNewPrice != 0) {
+            return $manualNewPrice;
+        }
+
         $existingEdits = PriceEdit::where('start_date', '<=', $this->created_at)
             ->where('end_date', '>=', $this->created_at)
             ->get();

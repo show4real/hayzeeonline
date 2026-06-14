@@ -96,6 +96,7 @@ trait productTrait
         $product->description = $data['description'];
         $product->product_type = $data['product_type'];
         $product->price = $data['price'];
+        $product->new_price = $data['new_price'] ?? null;
         $product->other_sales = $data['other_sales'];
         $product->availability = $data['availability'];
         $product->category_id = $data['category'];
