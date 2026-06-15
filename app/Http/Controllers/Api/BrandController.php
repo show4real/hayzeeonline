@@ -46,10 +46,15 @@ class BrandController extends Controller
     {
         $data = $request->validated();
 
-        $image = $request->image;
-        $imageName = time() . '.' . $image->getClientOriginalExtension();
-        $imageUrl = URL::asset('images/' . $imageName);
+        $imageUrl = null;
+        $image = null;
+        $imageName = null;
 
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imageUrl = URL::asset('images/' . $imageName);
+        }
 
         $brand = Brand::create([
             'name' => $data['name'],
@@ -59,34 +64,34 @@ class BrandController extends Controller
             'updated_at' => now()
         ]);
 
-        $this->singleUpload($image, $imageName, 0);
-
-
+        if ($image) {
+            $this->singleUpload($image, $imageName, 0);
+        }
 
         return $brand;
     }
 
     public function update(BrandRequest $request, Brand $brand)
     {
-        $this->deleteImage($brand->image_url);
-
         $data = $request->validated();
 
-        $image = $request->file('image');
-        $imageName = time() . '.' . $image->getClientOriginalExtension();
-        $imageUrl = URL::asset('images/' . $imageName);
+        $imageUrl = $brand->image_url;
 
+        if ($request->hasFile('image')) {
+            $this->deleteImage($brand->image_url);
 
+            $image = $request->file('image');
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imageUrl = URL::asset('images/' . $imageName);
+
+            $this->singleUpload($image, $imageName, 0);
+        }
 
         $brand->update([
             'name' => $data['name'],
             'image_url' => $imageUrl,
             'slug' => Str::slug($data['name']),
         ]);
-
-
-
-        $this->singleUpload($image, $imageName, 0);
 
         return response()->json(compact('brand'));
     }
