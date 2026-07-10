@@ -1,0 +1,201 @@
+openapi: 3.0.3
+info:
+  title: Hayzee Online — Public Products API
+  version: "1.0.0"
+  description: >
+    Public (unauthenticated) product endpoints for the storefront: a filtered,
+    sorted, paginated product list and a single-product lookup by slug.
+
+servers:
+  - url: /api
+    description: API base path
+
+paths:
+  /user/products:
+    post:
+      summary: List public products with filters, sorting, and pagination
+      description: >
+        Returns a paginated list of products. All filter fields are optional;
+        multi-value filters are arrays and `price` is a two-element `[min, max]` range.
+      operationId: listUserProducts
+      tags: [Products]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductQuery'
+      responses:
+        '200':
+          description: Paginated products plus homepage metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+
+  /singleproduct/{slug}:
+    get:
+      summary: Get a single product by slug
+      operationId: getProductBySlug
+      tags: [Products]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dell-xps-15
+      responses:
+        '200':
+          description: The matching product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Product not found
+
+components:
+  schemas:
+
+    ProductQuery:
+      type: object
+      properties:
+        sort:
+          type: string
+          nullable: true
+          enum: [high-price, low-price, name-desc, name-asc, availability, date-desc, date-asc]
+          description: Sort order. Omit for default (available first, then most recently updated).
+        search_all:
+          type: string
+          nullable: true
+          description: Free-text search across name and description.
+        brand:
+          type: integer
+          nullable: true
+          description: Brand id.
+        category:
+          type: integer
+          nullable: true
+          description: Category id.
+        price:
+          type: array
+          description: "Two-element range [min, max]. Applied only when both are set."
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+          example: [0, 500000]
+        storages:      { type: array, nullable: true, items: { type: string } }
+        processors:    { type: array, nullable: true, items: { type: string } }
+        rams:          { type: array, nullable: true, items: { type: string } }
+        models:        { type: array, nullable: true, items: { type: string } }
+        subtypes:      { type: array, nullable: true, items: { type: string } }
+        conditions:    { type: array, nullable: true, items: { type: string } }
+        cores:         { type: array, nullable: true, items: { type: string } }
+        storage_types: { type: array, nullable: true, items: { type: string } }
+        display_sizes: { type: array, nullable: true, items: { type: string } }
+        graphics_cards: { type: array, nullable: true, items: { type: string } }
+        graphics_card_memories: { type: array, nullable: true, items: { type: string } }
+        operating_systems: { type: array, nullable: true, items: { type: string } }
+        colors:        { type: array, nullable: true, items: { type: string } }
+        exchange:      { type: array, nullable: true, items: { type: string } }
+        rows:
+          type: integer
+          default: 15
+          description: Items per page.
+        page:
+          type: integer
+          default: 1
+          description: Page number.
+
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          $ref: '#/components/schemas/ProductPaginator'
+        youtube:
+          type: string
+          description: YouTube video id from the Youtube settings row.
+        notice:
+          type: string
+          description: Site notice text.
+
+    ProductPaginator:
+      type: object
+      description: Standard Laravel length-aware paginator.
+      properties:
+        current_page: { type: integer, example: 1 }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Product' }
+        first_page_url: { type: string }
+        from: { type: integer, nullable: true }
+        last_page: { type: integer, example: 10 }
+        last_page_url: { type: string }
+        next_page_url: { type: string, nullable: true }
+        path: { type: string }
+        per_page: { type: integer, example: 15 }
+        prev_page_url: { type: string, nullable: true }
+        to: { type: integer, nullable: true }
+        total: { type: integer, example: 142 }
+
+    Product:
+      type: object
+      properties:
+        id: { type: integer, example: 101 }
+        name: { type: string, example: "Dell XPS 15" }
+        price: { type: number, nullable: true, example: 450000 }
+        new_price: { type: number, nullable: true, example: 420000 }
+        description: { type: string, nullable: true }
+        image: { type: string, nullable: true }
+        category_id: { type: integer, nullable: true }
+        brand_id: { type: integer, nullable: true }
+        discount: { type: number, nullable: true }
+        availability:
+          type: integer
+          description: "1 = New/available, 0 = Sold."
+          example: 1
+        storage: { type: string, nullable: true }
+        ram: { type: string, nullable: true }
+        processor: { type: string, nullable: true }
+        other_sales: { type: string, nullable: true }
+        slug: { type: string, example: "dell-xps-15" }
+        product_type: { type: string, nullable: true }
+        model: { type: string, nullable: true }
+        subtype: { type: string, nullable: true }
+        condition: { type: string, nullable: true }
+        number_of_cores: { type: string, nullable: true }
+        storage_type: { type: string, nullable: true }
+        display_size: { type: string, nullable: true }
+        graphics_card: { type: string, nullable: true }
+        graphics_card_memory: { type: string, nullable: true }
+        operating_system: { type: string, nullable: true }
+        color: { type: string, nullable: true }
+        exchange_possible: { type: string, nullable: true }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+        # Appended (computed) attributes:
+        category:
+          type: string
+          nullable: true
+          description: Category name (appended accessor).
+        stock:
+          type: string
+          enum: [New, Sold]
+          description: Derived from availability (appended accessor).
+        image_hover:
+          type: string
+          nullable: true
+          description: Second product image URL, if present (appended accessor).

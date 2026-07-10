@@ -137,6 +137,7 @@ Route::controller(ShopController::class)->group(function () {
 
     Route::post('category/products', 'categoryProducts');
     Route::post('shop/products', 'shopProducts');
+    Route::get('chatgpt/products', 'chatgptProducts');
     Route::get('singleproduct/{slug}', 'show');
 });
 

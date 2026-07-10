@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\ProductImages;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Youtube;
@@ -260,5 +261,77 @@ class ShopController extends Controller
         return response()->json(compact('products'));
     }
 
-    
+    /**
+     * Lightweight product feed shaped for LLM/ChatGPT consumption.
+     * Returns a flat products array with only the fields an assistant needs,
+     * alongside pagination metadata. Supports the same filters as the storefront:
+     * search, sort, brand, category, price range and the spec facets (rams,
+     * processors, storages, graphics_cards, ...).
+     */
+    public function chatgptProducts(Request $request)
+    {
+        $perPage = min((int) ($request->rows ?? 20), 100);
+        $price = is_array($request->price) ? $request->price : [null, null];
+
+        $paginator = Product::sort($request->sort)
+            ->searchAll($request->search)
+            ->brand($request->brand)
+            ->category($request->category)
+            ->storage($request->storages)
+            ->processor($request->processors)
+            ->ram($request->rams)
+            ->model($request->models)
+            ->subtype($request->subtypes)
+            ->condition($request->conditions)
+            ->numberOfCores($request->cores)
+            ->storageType($request->storage_types)
+            ->displaySize($request->display_sizes)
+            ->graphicsCard($request->graphics_cards)
+            ->graphicsCardMemory($request->graphics_card_memories)
+            ->operatingSystem($request->operating_systems)
+            ->color($request->colors)
+            ->exchangePossible($request->exchange)
+            ->filterByPrice($price[0] ?? null, $price[1] ?? null, $request->search)
+            ->orderByRaw("availability = 1 DESC")
+            ->paginate($perPage, ['*'], 'page', $request->page);
+
+        // Resolve the main image for every product on this page in a single query (no N+1).
+        $imageMap = ProductImages::whereIn('product_id', collect($paginator->items())->pluck('id'))
+            ->get(['product_id', 'url'])
+            ->groupBy('product_id')
+            ->map(function ($images) {
+                return $images->first()->url;
+            });
+
+        $paginator->getCollection()->transform(function ($product) use ($imageMap) {
+            return [
+                'name' => $product->name,
+                'price' => $product->price,
+                'new_price' => $product->new_price,
+                'slug' => $product->slug,
+                'image' => $imageMap[$product->id] ?? $product->image,
+                'processor' => $product->processor,
+                'ram' => $product->ram,
+                'storage' => $product->storage,
+                'graphics_card' => $product->graphics_card,
+                'availability' => $product->availability,
+            ];
+        });
+
+        return response()->json([
+            'products' => $paginator->items(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+                'next_page_url' => $paginator->nextPageUrl(),
+                'prev_page_url' => $paginator->previousPageUrl(),
+            ],
+        ]);
+    }
+
+
 }
