@@ -320,14 +320,6 @@ class ShopController extends Controller
 
         return response()->json([
             'products' => $paginator->items(),
-            'pagination' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-            ],
         ]);
     }
 
