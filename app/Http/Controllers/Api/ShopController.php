@@ -270,7 +270,7 @@ class ShopController extends Controller
      */
     public function chatgptProducts(Request $request)
     {
-        $perPage = min((int) ($request->rows ?? 20), 100);
+        $perPage = min((int) ($request->rows ?? 5), 100);
         $price = is_array($request->price) ? $request->price : [null, null];
 
         $paginator = Product::sort($request->sort)
@@ -327,8 +327,6 @@ class ShopController extends Controller
                 'last_page' => $paginator->lastPage(),
                 'from' => $paginator->firstItem(),
                 'to' => $paginator->lastItem(),
-                'next_page_url' => $paginator->nextPageUrl(),
-                'prev_page_url' => $paginator->previousPageUrl(),
             ],
         ]);
     }
