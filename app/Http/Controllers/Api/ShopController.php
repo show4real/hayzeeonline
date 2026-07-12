@@ -273,10 +273,16 @@ class ShopController extends Controller
         $perPage = min((int) ($request->rows ?? 5), 100);
         $price = is_array($request->price) ? $request->price : [null, null];
 
-        $paginator = Product::sort($request->sort)
-            ->searchAll($request->search)
+        // Keep in-stock (availability = 1) items on top, then let the requested
+        // sort act as the tiebreaker. Ordering is added before sort() because
+        // Eloquent applies ORDER BY clauses in the order they are chained.
+        $paginator = Product::searchAll($request->search)
             ->brand($request->brand)
-            ->category($request->category)
+            ->when($request->category, function ($q) use ($request) {
+                // Filter only — avoid scopeCategory()'s latest() side effect,
+                // which would otherwise override the availability/price ordering.
+                $q->where('category_id', $request->category);
+            })
             ->storage($request->storages)
             ->processor($request->processors)
             ->ram($request->rams)
@@ -293,6 +299,7 @@ class ShopController extends Controller
             ->exchangePossible($request->exchange)
             ->filterByPrice($price[0] ?? null, $price[1] ?? null, $request->search)
             ->orderByRaw("availability = 1 DESC")
+            ->sort($request->sort)
             ->paginate($perPage, ['*'], 'page', $request->page);
 
         // Resolve the main image for every product on this page in a single query (no N+1).
