@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\InsuranceApplicationController;
 use App\Http\Controllers\Api\ClientConsentController;
 use App\Http\Controllers\Api\QuickFormController;
 use App\Http\Controllers\Api\HealthSupplementController;
+use App\Http\Controllers\Api\AiAgentController;
+use App\Http\Controllers\Api\McpController;
 use MeiliSearch\Client;
 
 
@@ -34,6 +36,17 @@ use MeiliSearch\Client;
 */
 
 
+
+// AI agent integration: REST endpoints + OpenAPI spec (ChatGPT Actions)
+// and an MCP server (ChatGPT connectors, Claude, other agents).
+Route::get('openapi.json', [AiAgentController::class, 'openapi']);
+Route::any('mcp', [McpController::class, 'handle']);
+Route::controller(AiAgentController::class)->prefix('ai')->group(function () {
+    Route::get('products', 'searchProducts');
+    Route::get('products/{slug}', 'showProduct');
+    Route::get('categories', 'categories');
+    Route::get('brands', 'brands');
+});
 
 Route::post('/initiate-payment', [PaymentController::class, 'initiatePayment']);
 Route::post('/handle-payment-callback', [PaymentController::class, 'handlePaymentCallback']);

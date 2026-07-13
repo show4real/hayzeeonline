@@ -58,6 +58,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Storefront
+    |--------------------------------------------------------------------------
+    |
+    | Public shop frontend that product links (shared with users by AI
+    | agents, etc.) should point to, and the currency prices are stored in.
+    |
+    */
+
+    'store_url' => env('STORE_URL', 'https://hayzeeonline.com'),
+
+    'store_currency' => env('STORE_CURRENCY', 'NGN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
