@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\ProductImages;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Youtube;
@@ -262,71 +261,68 @@ class ShopController extends Controller
     }
 
     /**
-     * Lightweight product feed shaped for LLM/ChatGPT consumption.
-     * Returns a flat products array with only the fields an assistant needs,
-     * alongside pagination metadata. Supports the same filters as the storefront:
-     * search, sort, brand, category, price range and the spec facets (rams,
-     * processors, storages, graphics_cards, ...).
+     * AI/ChatGPT-facing product feed.
+     *
+     * Accepts array filters — search, brand[], category[], processor[], ram[],
+     * storage[], gpu[], condition[], price[] (min,max) — plus sort, page, rows,
+     * and returns an assistant-friendly `data` array (brand name, specs, and a
+     * shareable product link).
      */
     public function chatgptProducts(Request $request)
     {
         $perPage = min((int) ($request->rows ?? 5), 100);
         $price = is_array($request->price) ? $request->price : [null, null];
 
+        // Map each incoming filter to the column it constrains. Every filter is
+        // multi-value (whereIn); scalars are tolerated via the (array) cast.
+        $facets = [
+            'brand_id'      => $request->brand,
+            'category_id'   => $request->category,
+            'processor'     => $request->processor,
+            'ram'           => $request->ram,
+            'storage'       => $request->storage,
+            'graphics_card' => $request->gpu,
+            'condition'     => $request->condition,
+        ];
+
+        $query = Product::searchAll($request->search);
+        foreach ($facets as $column => $value) {
+            if (! empty($value)) {
+                $query->whereIn($column, (array) $value);
+            }
+        }
+
         // Keep in-stock (availability = 1) items on top, then let the requested
         // sort act as the tiebreaker. Ordering is added before sort() because
         // Eloquent applies ORDER BY clauses in the order they are chained.
-        $paginator = Product::searchAll($request->search)
-            ->brand($request->brand)
-            ->when($request->category, function ($q) use ($request) {
-                // Filter only — avoid scopeCategory()'s latest() side effect,
-                // which would otherwise override the availability/price ordering.
-                $q->where('category_id', $request->category);
-            })
-            ->storage($request->storages)
-            ->processor($request->processors)
-            ->ram($request->rams)
-            ->model($request->models)
-            ->subtype($request->subtypes)
-            ->condition($request->conditions)
-            ->numberOfCores($request->cores)
-            ->storageType($request->storage_types)
-            ->displaySize($request->display_sizes)
-            ->graphicsCard($request->graphics_cards)
-            ->graphicsCardMemory($request->graphics_card_memories)
-            ->operatingSystem($request->operating_systems)
-            ->color($request->colors)
-            ->exchangePossible($request->exchange)
+        $paginator = $query
             ->filterByPrice($price[0] ?? null, $price[1] ?? null, $request->search)
             ->orderByRaw("availability = 1 DESC")
             ->sort($request->sort)
             ->paginate($perPage, ['*'], 'page', $request->page);
 
-        // Resolve the main image for every product on this page in a single query (no N+1).
-        $imageMap = ProductImages::whereIn('product_id', collect($paginator->items())->pluck('id'))
-            ->get(['product_id', 'url'])
-            ->groupBy('product_id')
-            ->map(function ($images) {
-                return $images->first()->url;
-            });
+        // Resolve brand names for this page in a single query (no N+1).
+        $brandMap = Brand::whereIn('id', collect($paginator->items())->pluck('brand_id')->filter()->unique())
+            ->pluck('name', 'id');
 
-        $paginator->getCollection()->transform(function ($product) use ($imageMap) {
+        $storeUrl = rtrim(config('app.store_url', 'https://hayzeeonline.com'), '/');
+
+        $paginator->getCollection()->transform(function ($product) use ($brandMap, $storeUrl) {
             return [
                 'name' => $product->name,
                 'price' => $product->price,
-                'new_price' => $product->new_price,
-                'slug' => $product->slug,
-                'image' => $imageMap[$product->id] ?? $product->image,
+                'brand' => $brandMap[$product->brand_id] ?? null,
                 'processor' => $product->processor,
                 'ram' => $product->ram,
                 'storage' => $product->storage,
-                'graphics_card' => $product->graphics_card,
-                'availability' => $product->availability,
+                'display' => $product->display_size,
+                'condition' => $product->condition,
+                'link' => $storeUrl . '/search/' . $product->slug,
             ];
         });
 
         return response()->json([
-            'products' => $paginator->items(),
+            'data' => $paginator->items(),
         ]);
     }
 
