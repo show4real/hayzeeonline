@@ -292,13 +292,10 @@ class ShopController extends Controller
             }
         }
 
-        // Keep in-stock (availability = 1) items on top, then let the requested
-        // sort act as the tiebreaker. Ordering is added before sort() because
-        // Eloquent applies ORDER BY clauses in the order they are chained.
+        // Only in-stock products are exposed on this endpoint.
         $paginator = $query
-            ->availability($request->availability)
+            ->where('availability', 1)
             ->filterByPrice($price[0] ?? null, $price[1] ?? null, $request->search)
-            ->orderByRaw("availability = 1 DESC")
             ->sort($request->sort)
             ->paginate($perPage, ['*'], 'page', $request->page);
 
