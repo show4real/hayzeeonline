@@ -318,6 +318,7 @@ class ShopController extends Controller
                 'storage' => $product->storage,
                 'display' => $product->display_size,
                 'condition' => $product->condition,
+                'availability' => $product->availability,
                 'link' => $storeUrl . '/search/' . $product->slug,
             ];
         });
