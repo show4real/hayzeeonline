@@ -16,3 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Privacy policy for the public AI/product API — the URL to supply when a
+// GPT, connector, or app directory listing asks for a privacy policy.
+Route::get('/privacy', function () {
+    return view('privacy');
+});
