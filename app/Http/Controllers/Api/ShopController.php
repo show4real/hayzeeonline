@@ -296,6 +296,7 @@ class ShopController extends Controller
         // sort act as the tiebreaker. Ordering is added before sort() because
         // Eloquent applies ORDER BY clauses in the order they are chained.
         $paginator = $query
+            ->availability($request->availability)
             ->filterByPrice($price[0] ?? null, $price[1] ?? null, $request->search)
             ->orderByRaw("availability = 1 DESC")
             ->sort($request->sort)

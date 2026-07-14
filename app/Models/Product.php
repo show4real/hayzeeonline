@@ -141,6 +141,14 @@ class Product extends Model
         return $query;
     }
 
+    public function scopeAvailability($query, $filter)
+    {
+        if (!is_null($filter)) {
+            return $query->where('availability', $filter);
+        }
+        return $query;
+    }
+
     public function scopeCategory($query, $filter)
     {
         if ($filter) {
