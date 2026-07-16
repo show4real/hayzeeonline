@@ -264,14 +264,13 @@ class ShopController extends Controller
      * AI/ChatGPT-facing product feed.
      *
      * Accepts array filters — search, brand[], category[], processor[], ram[],
-     * storage[], gpu[], condition[], price[] (min,max) — plus sort, page, rows,
-     * and returns an assistant-friendly `data` array (brand name, specs, and a
-     * shareable product link).
+     * storage[], gpu[], condition[] — plus min_price, max_price (each applies
+     * independently), sort, page, rows, and returns an assistant-friendly
+     * `data` array (brand name, specs, and a shareable product link).
      */
     public function chatgptProducts(Request $request)
     {
         $perPage = min((int) ($request->rows ?? 5), 100);
-        $price = is_array($request->price) ? $request->price : [null, null];
 
         // Map each incoming filter to the column it constrains. Every filter is
         // multi-value (whereIn); scalars are tolerated via the (array) cast.
@@ -295,7 +294,8 @@ class ShopController extends Controller
         // Only in-stock products are exposed on this endpoint.
         $paginator = $query
             ->where('availability', 1)
-            ->filterByPrice($price[0] ?? null, $price[1] ?? null, $request->search)
+            ->when($request->filled('min_price'), fn ($q) => $q->where('price', '>=', (float) $request->min_price))
+            ->when($request->filled('max_price'), fn ($q) => $q->where('price', '<=', (float) $request->max_price))
             ->sort($request->sort)
             ->paginate($perPage, ['*'], 'page', $request->page);
 
@@ -316,7 +316,7 @@ class ShopController extends Controller
                 'display' => $product->display_size,
                 'condition' => $product->condition,
                 'availability' => $product->availability,
-                'link' => $storeUrl . '/search/' . $product->slug,
+                'link' => $storeUrl . '/products/' . $product->slug,
             ];
         });
 
