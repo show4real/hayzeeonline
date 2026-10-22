@@ -145,7 +145,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT || 22 }}
-          source: ".env,docker-compose.prod.yml,docker/deploy.sh,docker/provision-apache.sh,docker/apache-vhost.conf.example"
+          source: ".env,docker-compose.prod.yml,docker/deploy.sh,docker/provision-apache.sh,docker/apache-vhost.conf.example,docker/restore-uploads.sh"
           target: ${{ env.DEPLOY_PATH }}
           overwrite: true
 
@@ -162,7 +162,10 @@ jobs:
             set -Eeuo pipefail
             echo "$REGISTRY_TOKEN" | docker login "$REGISTRY" -u "$REGISTRY_USER" --password-stdin
             cd "$DEPLOY_DIR"
-            chmod +x docker/deploy.sh docker/provision-apache.sh
+            # restore-uploads.sh is never run by the deploy — it is a one-off
+            # migration tool. Made executable here so it is ready to use on the
+            # server without a chmod first.
+            chmod +x docker/deploy.sh docker/provision-apache.sh docker/restore-uploads.sh
             ./docker/deploy.sh "$APP_IMG" "$NGINX_IMG"
             docker logout "$REGISTRY"
 

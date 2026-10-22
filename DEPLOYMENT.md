@@ -267,36 +267,44 @@ be migrated, which this path deliberately avoids.
 git tag v1.0.0 && git push origin v1.0.0
 ```
 
-The deploy will build, migrate, start the containers, pass its health check, and
+The deploy will build, migrate, start the containers and pass its health check,
 then stop at the Apache step with the refusal described above. That is expected.
-Now put the uploads into the named volumes:
+
+**The containers now serve, but every image URL returns 404.** The upload
+directories are volumes (so a release cannot delete them) and on the first
+deploy they are empty, while the actual files are still in the old deployment's
+`public/` directory on this same machine. Copy them across:
 
 ```bash
 cd /srv/hayzeeonline
-mkdir -p /tmp/hayzee-uploads
-tar xzf ~/hayzee-uploads.tar.gz -C /tmp/hayzee-uploads
 
-for d in images:product_images \
-         detailedproducts:product_detailed \
-         insurance:insurance \
-         client_consents:client_consents \
-         health_supplements:health_supplements \
-         quick_forms:quick_forms; do
-    src="${d%%:*}"; vol="hayzeeonline_${d##*:}"
-    docker run --rm \
-        -v "${vol}:/dest" \
-        -v "/tmp/hayzee-uploads/${src}:/src:ro" \
-        alpine sh -c 'cp -a /src/. /dest/ && chown -R 33:33 /dest'
-done
+# Where is the old public/ directory?
+sudo find /var/www /home /srv -maxdepth 5 -type d -name detailedproducts 2>/dev/null
+
+# Look before you leap.
+sudo ./docker/restore-uploads.sh /var/www/hayzeeonline/public --dry-run
+
+# Then copy.
+sudo ./docker/restore-uploads.sh /var/www/hayzeeonline/public
 ```
 
-`33:33` is `www-data` in the image. Restart the app so nothing is holding a
-stale handle, then spot-check a real product photo:
+It handles all six directories, skips any that do not exist, sets ownership to
+`33:33` (`www-data` in the image — a root-owned file is one the app cannot later
+replace), and reports a file count per volume so you can see it worked.
+
+It only ever **adds**. The source directory is mounted read-only and nothing in
+the volumes is deleted, so it is safe to re-run and it will not overwrite an
+upload made after cutover. Keep the old directory until you have verified —
+it is also your rollback.
+
+Then check a URL that was 404ing:
 
 ```bash
-docker compose -f docker-compose.prod.yml restart app nginx
-curl -sI http://127.0.0.1:8096/images/<a-filename-you-saw-in-the-tar> | head -1
+docker run --rm -v hayzeeonline_product_images:/d alpine ls /d | head
+curl -sI http://127.0.0.1:8096/images/<one-of-those-filenames> | head -1
 ```
+
+No restart is needed — volume contents are live.
 
 ### 5. Convert the vhost
 
