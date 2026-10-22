@@ -171,12 +171,17 @@ jobs:
             # another container start and another password handshake, which is
             # where the time actually went. Once the vhost is in place the
             # script exits immediately.
+            # DOMAIN_ALIASES is unquoted so each alias arrives as its own
+            # argument, and :- guarded because this runs under `set -u`, where
+            # an empty value that ssh-action chose not to export would abort
+            # the deploy on an unbound variable instead of meaning "no
+            # aliases".
+            #
+            # Keep this comment ABOVE the statement. A comment placed after the
+            # line-continuation below is spliced onto it, which silently
+            # reduces the command to `sudo -S -p ''` with no command at all —
+            # sudo then prints its usage and exits 1.
             echo "$SUDO_PASS" | sudo -S -p '' \
-              # Unquoted and :- guarded: unquoted because each alias must
-              # arrive as its own argument, and :- because this script runs
-              # under `set -u`, where an empty DOMAIN_ALIASES that ssh-action
-              # chose not to export would abort the deploy on an unbound
-              # variable rather than simply meaning "no aliases".
               ./docker/provision-apache.sh "$DOMAIN" "$APP_PORT" ${DOMAIN_ALIASES:-}
         env:
           REGISTRY: ${{ env.REGISTRY }}

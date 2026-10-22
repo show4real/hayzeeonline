@@ -488,6 +488,100 @@ If you add another `public_path()` upload target, add it in four places:
 `docker/nginx/default.conf`. `grep -r "public_path('" app/` lists the current
 set.
 
+## Troubleshooting
+
+### `dial tcp ***:***: i/o timeout` on the copy step
+
+```
+drone-scp error: error copy file to dest: ***,
+  error message: dial tcp ***:***: i/o timeout
+```
+
+The images built and pushed fine — this is the first step that touches the
+server, and it never completed a TCP handshake. Nothing in this repository
+affects it; it is reachability between the GitHub runner and the VPS.
+
+**`i/o timeout` is the useful part.** The three failures look different:
+
+| What the log says | What it means |
+| --- | --- |
+| `i/o timeout` | Packets are being **dropped**. A firewall, or the wrong host/port. |
+| `connection refused` | The host answered — nothing is listening on that port. sshd is down or on another port. |
+| `no such host` | DNS. `VPS_HOST` is wrong or unresolvable. |
+
+So sshd is almost certainly running and the password is irrelevant so far — the
+connection is being swallowed before SSH is reached.
+
+Run the **Diagnose VPS connectivity** workflow (Actions tab → Run workflow). It
+checks the shape of the secrets, resolves the name, and reports OPEN / REFUSED /
+NO ANSWER for the configured port plus 443 as a control. Work through the causes
+below in order; it is nearly always the first two.
+
+#### 1. The provider's own firewall
+
+Separate from anything on the box, and the usual culprit: Hostinger, Contabo,
+OVH, Oracle Cloud, AWS and Azure all have a firewall or security group in their
+control panel, which drops rather than refuses. SSH from your laptop works
+because your address was allowed when the server was built.
+
+Check the panel for an inbound rule allowing your SSH port from `0.0.0.0/0`.
+
+#### 2. `ufw` / `iptables` on the server
+
+```bash
+sudo ufw status verbose
+sudo iptables -S | grep -i -- '22\|drop\|reject'
+```
+
+A rule like `22/tcp ALLOW IN 102.89.x.x` allows only your home address.
+
+#### 3. A wrong `VPS_PORT`
+
+Worth a specific look. In the failing log the port is masked as `***`, which
+means a `VPS_PORT` secret is set and being used — if it were unset, the
+workflow's literal `22` fallback would have printed as `22`. So the value in
+that secret is what the runner dialled. (Treat this as a strong hint, not proof:
+GitHub masks a secret's value wherever it appears.)
+
+Set it to your real SSH port, or delete the secret entirely to fall back to 22.
+
+#### 4. `fail2ban`
+
+Repeated failed runs can get the runner banned, which then drops packets.
+
+```bash
+sudo fail2ban-client status sshd
+sudo fail2ban-client set sshd unbanip <runner egress ip>
+```
+
+#### 5. A malformed secret
+
+A trailing newline pasted into `VPS_HOST`, a scheme (`https://`), or the port
+appended to the host. The diagnostic workflow's first step reports the length
+and flags all three without revealing the value.
+
+### If SSH cannot be opened to the internet
+
+Allow-listing GitHub's runners is not practical — `ubuntu-latest` runs from a
+large, rotating Azure range, so an allow-list of one address breaks on the next
+run. The egress address the diagnostic prints is good for a one-off unban, not
+for a firewall rule. Three real options:
+
+1. **Open the SSH port, but harden it.** Key-only auth
+   (`PasswordAuthentication no`), a non-standard port, and `fail2ban`. Note this
+   means moving off the `VPS_PASSWORD` secret to an `SSH_PRIVATE_KEY` one, which
+   is the better arrangement regardless — pass it as `key:` instead of
+   `password:` in both the scp and ssh steps.
+2. **A self-hosted runner on the VPS.** No inbound SSH at all; the runner polls
+   GitHub outbound. Replace `runs-on: ubuntu-latest` with `runs-on: self-hosted`
+   and drop both remote steps in favour of running `deploy.sh` locally.
+3. **A private network.** Tailscale has an action for this
+   (`tailscale/github-action`); the runner joins your tailnet and reaches the
+   VPS on its tailnet address, with nothing exposed publicly.
+
+Option 1 is the smallest change. Option 2 is the most secure and also removes
+the `scp` step entirely.
+
 ## Local development
 
 The local stack is a separate, gitignored file, so your ports are yours:

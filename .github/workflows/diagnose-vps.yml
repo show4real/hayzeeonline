@@ -1,0 +1,132 @@
+name: Diagnose VPS connectivity
+
+# Run-on-demand triage for the "dial tcp ***:***: i/o timeout" failure in the
+# deploy workflow. It never touches the server state — it only asks whether the
+# runner can open a TCP connection at all, and says which layer is refusing.
+#
+# Actions tab -> "Diagnose VPS connectivity" -> Run workflow.
+#
+# Delete this file once the deploy is green; it is a debugging aid, not part of
+# the pipeline.
+
+on:
+  workflow_dispatch:
+    inputs:
+      extra_port:
+        description: 'Also test this port (e.g. 22, 2222) — leave blank to skip'
+        required: false
+        default: ''
+
+jobs:
+  probe:
+    name: Probe SSH reachability
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      # Secret VALUES are masked in the log, so they cannot be printed. Their
+      # shape can: a length that is one or two longer than you expect is a
+      # trailing newline or space pasted into the secret, which is a common
+      # cause of a dial that goes nowhere.
+      - name: Check the shape of the secrets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+        run: |
+          set -u
+          printf 'VPS_HOST     set=%s  length=%s\n' \
+            "$([ -n "${VPS_HOST:-}" ] && echo yes || echo NO)" "${#VPS_HOST}"
+          printf 'VPS_USER     set=%s  length=%s\n' \
+            "$([ -n "${VPS_USER:-}" ] && echo yes || echo NO)" "${#VPS_USER}"
+          printf 'VPS_PASSWORD set=%s  length=%s\n' \
+            "$([ -n "${VPS_PASSWORD:-}" ] && echo yes || echo NO)" "${#VPS_PASSWORD}"
+          printf 'VPS_PORT     set=%s  length=%s\n' \
+            "$([ -n "${VPS_PORT:-}" ] && echo yes || echo NO)" "${#VPS_PORT}"
+
+          # These three are the mistakes that produce a silent dial failure.
+          case "${VPS_HOST:-}" in
+            *://*)  echo "::error::VPS_HOST contains a scheme (http:// or ssh://). It must be a bare host or IP." ;;
+            *:*)    echo "::error::VPS_HOST contains a colon. The port belongs in VPS_PORT, not in the host." ;;
+            */*)    echo "::error::VPS_HOST contains a slash. It must be a bare host or IP." ;;
+          esac
+          case "${VPS_HOST:-}" in
+            *' '*|*"$(printf '\t')"*) echo "::error::VPS_HOST contains whitespace." ;;
+          esac
+          if [ "${#VPS_HOST}" -ne "$(printf '%s' "$VPS_HOST" | tr -d '[:space:]' | wc -c | tr -d ' ')" ]; then
+            echo "::error::VPS_HOST has leading/trailing whitespace — re-paste the secret without a newline."
+          fi
+          if [ -n "${VPS_PORT:-}" ] && ! printf '%s' "$VPS_PORT" | grep -qE '^[0-9]+$'; then
+            echo "::error::VPS_PORT is not a plain number."
+          fi
+
+      - name: Where this runner is coming from
+        run: |
+          # Useful only if you intend to allow-list it. GitHub-hosted runners
+          # come from a large, rotating Azure range, so an allow-list of one
+          # address will break on the next run — see the notes in DEPLOYMENT.md.
+          echo "runner egress IPv4: $(curl -4 -s --max-time 10 https://api.ipify.org || echo unknown)"
+
+      - name: DNS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          if getent hosts "$VPS_HOST" >/dev/null 2>&1; then
+            # Count only — the addresses are secret-adjacent and would be masked
+            # anyway if VPS_HOST is an IP.
+            echo "resolves: yes ($(getent hosts "$VPS_HOST" | wc -l | tr -d ' ') record(s))"
+          else
+            echo "::error::VPS_HOST does not resolve. If it is an IP this is fine to ignore; if it is a name, the DNS record is missing."
+          fi
+
+      # The actual question. /dev/tcp gives a clean three-way-handshake test
+      # with no SSH, no auth and no action wrapper in the way.
+      - name: TCP connect
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          CONFIGURED_PORT: ${{ secrets.VPS_PORT || 22 }}
+          EXTRA_PORT: ${{ inputs.extra_port }}
+        shell: bash
+        run: |
+          # Elapsed time alone separates the two failure modes, so this needs no
+          # netcat: a refusal comes back immediately with an RST, while a packet
+          # that is dropped takes the whole timeout. That is exactly the
+          # distinction the deploy error does not tell you.
+          probe() {
+            local port="$1" label="$2" start=$SECONDS
+            if timeout 12 bash -c "exec 3<>/dev/tcp/${VPS_HOST}/${port}" 2>/dev/null; then
+              echo "  ${label}: OPEN — the runner can reach it, so this is not a firewall problem"
+              return 0
+            fi
+            local elapsed=$((SECONDS - start))
+            if [ "$elapsed" -ge 11 ]; then
+              echo "  ${label}: NO ANSWER after ${elapsed}s — packets are being dropped (firewall) or the host/port is wrong"
+            else
+              echo "  ${label}: REFUSED after ${elapsed}s — the host is reachable, but nothing is listening on that port"
+            fi
+            return 1
+          }
+
+          ok=0
+          echo "configured port:"
+          probe "$CONFIGURED_PORT" "VPS_PORT (or the 22 fallback)" && ok=1
+
+          if [ -n "${EXTRA_PORT:-}" ]; then
+            echo "extra port:"
+            probe "$EXTRA_PORT" "port ${EXTRA_PORT}" && ok=1
+          fi
+
+          # A port that is definitely open on almost any public host, as a
+          # control: if this also fails, the host is simply not reachable from
+          # here and the SSH port is a red herring.
+          echo "control (443, just to see if the host is reachable at all):"
+          probe 443 "port 443" || true
+
+          echo
+          if [ "$ok" = 1 ]; then
+            echo "VERDICT: the SSH port is reachable from GitHub. If the deploy still"
+            echo "         fails, the problem is authentication or fail2ban, not the network."
+          else
+            echo "::error::VERDICT: the runner cannot open the SSH port. See DEPLOYMENT.md -> Troubleshooting."
+            exit 1
+          fi
