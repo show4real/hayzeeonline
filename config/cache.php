@@ -5,37 +5,13 @@ use Illuminate\Support\Str;
 return [
 
     /*
-    |--------------------------------------------------------------------------
-    | Default Cache Store
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the default cache connection that gets used while
-    | using this caching library. This connection is used when another is
-    | not explicitly specified when executing a given caching function.
-    |
+    | Laravel 11 renamed CACHE_DRIVER to CACHE_STORE. Both are read here so an
+    | existing server .env keeps working through the upgrade.
     */
 
-    'default' => env('CACHE_DRIVER', 'file'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Cache Stores
-    |--------------------------------------------------------------------------
-    |
-    | Here you may define all of the cache "stores" for your application as
-    | well as their drivers. You may even define multiple stores for the
-    | same cache driver to group types of items stored in your caches.
-    |
-    | Supported drivers: "apc", "array", "database", "file",
-    |         "memcached", "redis", "dynamodb", "octane", "null"
-    |
-    */
+    'default' => env('CACHE_STORE', env('CACHE_DRIVER', 'file')),
 
     'stores' => [
-
-        'apc' => [
-            'driver' => 'apc',
-        ],
 
         'array' => [
             'driver' => 'array',
@@ -44,14 +20,16 @@ return [
 
         'database' => [
             'driver' => 'database',
-            'table' => 'cache',
-            'connection' => null,
-            'lock_connection' => null,
+            'connection' => env('DB_CACHE_CONNECTION'),
+            'table' => env('DB_CACHE_TABLE', 'cache'),
+            'lock_connection' => env('DB_CACHE_LOCK_CONNECTION'),
+            'lock_table' => env('DB_CACHE_LOCK_TABLE'),
         ],
 
         'file' => [
             'driver' => 'file',
             'path' => storage_path('framework/cache/data'),
+            'lock_path' => storage_path('framework/cache/data'),
         ],
 
         'memcached' => [
@@ -75,8 +53,8 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => 'cache',
-            'lock_connection' => 'default',
+            'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
+            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 
         'dynamodb' => [
@@ -95,16 +73,10 @@ return [
     ],
 
     /*
-    |--------------------------------------------------------------------------
-    | Cache Key Prefix
-    |--------------------------------------------------------------------------
-    |
-    | When utilizing a RAM based store such as APC or Memcached, there might
-    | be other applications utilizing the same cache. So, we'll specify a
-    | value to get prefixed to all our keys so we can avoid collisions.
-    |
+    | Prefixed so two applications sharing one Redis or Memcached cannot read
+    | or evict each other's keys.
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_cache'),
+    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
 
 ];

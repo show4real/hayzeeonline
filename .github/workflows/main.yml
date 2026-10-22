@@ -1,0 +1,196 @@
+name: Deploy production
+
+# Production releases only: v1.4.0, v2.0.1 …
+# A pre-release tag such as v1.4.0-test.1 does NOT match — the pattern has no
+# trailing wildcard, so the leftover "-test.1" stops it. That leaves room to
+# add a test stack later without this workflow picking its tags up.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  APP_IMAGE: ghcr.io/${{ github.repository }}-app
+  NGINX_IMAGE: ghcr.io/${{ github.repository }}-nginx
+
+  # Everything below is configuration for THIS stack. Nothing here is secret,
+  # and nothing has to be typed into the GitHub UI — change it here.
+  #
+  # PROXY_PORT is the single source of truth for the port: it drives the
+  # container's published port, the health check and the Apache vhost, and it
+  # overrides APP_PORT in the .env secret. Only APP_URL in that secret still
+  # needs to match DOMAIN by hand.
+  #
+  # 8096 because the inventory stack already holds 8090 (production) and 8091
+  # (test) on this host.
+  DOMAIN: api.hayzeeonline.com
+
+  # Extra hostnames served by this SAME stack, space separated. They become
+  # ServerAlias entries on the one vhost — no extra containers, port, database,
+  # volumes or env secret, and one certificate to renew.
+  #
+  # Add a name here, push a tag, then extend the certificate to cover it:
+  #   sudo certbot --apache --expand -d api.hayzeeonline.com -d apiv2.hayzeeonline.com
+  #
+  # Leave empty for a single hostname.
+  DOMAIN_ALIASES: "apiv2.hayzeeonline.com"
+
+  PROXY_PORT: "8096"
+
+  # Keeps this stack's containers, volumes and network distinct from anything
+  # else on the box.
+  STACK_NAME: hayzeeonline
+  DEPLOY_PATH: /srv/hayzeeonline
+
+jobs:
+  deploy:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Both halves are built in — no secret to create or rotate.
+      # github.actor is whoever triggered the run; GITHUB_TOKEN is minted for
+      # this job, scoped to this repository, and expires when the job ends.
+      - name: Log in to the registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Tagged with the release (v1.4.0) as well as the commit, so what is
+      # running on the server is traceable to a version, not just a hash.
+      - name: Build & push app
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/php/Dockerfile
+          target: runtime
+          push: true
+          build-args: |
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+            VERSION=${{ github.ref_name }}
+            REVISION=${{ github.sha }}
+          # Lifts Composer's api.github.com quota from 60/hour-per-IP (shared
+          # with every other runner) to the token's own allowance. A secret,
+          # not a build-arg, so it is not recorded in the image history.
+          secrets: |
+            composer_auth={"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}
+          tags: |
+            ${{ env.APP_IMAGE }}:${{ github.ref_name }}
+            ${{ env.APP_IMAGE }}:${{ github.sha }}
+            ${{ env.APP_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Built FROM the app image so both always carry the same public/ assets.
+      - name: Build & push nginx
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/nginx/Dockerfile
+          push: true
+          build-args: |
+            APP_IMAGE=${{ env.APP_IMAGE }}:${{ github.sha }}
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+            VERSION=${{ github.ref_name }}
+            REVISION=${{ github.sha }}
+          tags: |
+            ${{ env.NGINX_IMAGE }}:${{ github.ref_name }}
+            ${{ env.NGINX_IMAGE }}:${{ github.sha }}
+            ${{ env.NGINX_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Written on the runner (ephemeral, isolated) and copied over, rather
+      # than kept by hand on the server. GitHub is the single source of truth
+      # for production configuration.
+      - name: Create .env from secret
+        run: |
+          printf '%s\n' "$ENV_FILE" > .env
+          # Deliberately NOT chmod 600 here. scp-action tars the workspace from
+          # inside a container running as a different user, so an owner-only
+          # file gives "tar: can't open '.env': Permission denied". The runner
+          # is ephemeral and single-tenant; deploy.sh chmods it 600 on arrival,
+          # which is where it actually matters.
+          # Fail loudly now rather than with a confusing error on the server.
+          grep -q '^APP_KEY=base64:' .env || { echo "secret has no APP_KEY"; exit 1; }
+          grep -q '^DB_HOST='          .env || { echo "secret has no DB_HOST"; exit 1; }
+          # The entrypoint runs config:cache, after which env() returns null
+          # outside config files — so a missing JWT_SECRET does not fail at
+          # boot, it fails on the first login attempt. Catch it here.
+          grep -q '^JWT_SECRET='       .env || { echo "secret has no JWT_SECRET"; exit 1; }
+          echo "wrote .env ($(wc -l < .env) lines)"
+        env:
+          ENV_FILE: ${{ secrets.ENV_PRODUCTION }}
+
+      - name: Copy deploy files to the VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: ".env,docker-compose.prod.yml,docker/deploy.sh,docker/provision-apache.sh,docker/apache-vhost.conf.example"
+          target: ${{ env.DEPLOY_PATH }}
+          overwrite: true
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          envs: REGISTRY,REGISTRY_USER,REGISTRY_TOKEN,APP_IMG,NGINX_IMG,DEPLOY_DIR,STACK_NAME,APP_PORT,DOMAIN,DOMAIN_ALIASES,SUDO_PASS
+          script_stop: true
+          script: |
+            set -Eeuo pipefail
+            echo "$REGISTRY_TOKEN" | docker login "$REGISTRY" -u "$REGISTRY_USER" --password-stdin
+            cd "$DEPLOY_DIR"
+            chmod +x docker/deploy.sh docker/provision-apache.sh
+            ./docker/deploy.sh "$APP_IMG" "$NGINX_IMG"
+            docker logout "$REGISTRY"
+
+            # Apache runs in this same session rather than a step of its own:
+            # the check costs milliseconds, but a second ssh-action means
+            # another container start and another password handshake, which is
+            # where the time actually went. Once the vhost is in place the
+            # script exits immediately.
+            echo "$SUDO_PASS" | sudo -S -p '' \
+              # Unquoted and :- guarded: unquoted because each alias must
+              # arrive as its own argument, and :- because this script runs
+              # under `set -u`, where an empty DOMAIN_ALIASES that ssh-action
+              # chose not to export would abort the deploy on an unbound
+              # variable rather than simply meaning "no aliases".
+              ./docker/provision-apache.sh "$DOMAIN" "$APP_PORT" ${DOMAIN_ALIASES:-}
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_IMG: ${{ env.APP_IMAGE }}:${{ github.sha }}
+          NGINX_IMG: ${{ env.NGINX_IMAGE }}:${{ github.sha }}
+          DEPLOY_DIR: ${{ env.DEPLOY_PATH }}
+          STACK_NAME: ${{ env.STACK_NAME }}
+          # One value drives all three: the container's published port, the
+          # health check, and the port Apache proxies to.
+          APP_PORT: ${{ env.PROXY_PORT }}
+          DOMAIN: ${{ env.DOMAIN }}
+          # Unquoted above, deliberately: this is a space-separated list and
+          # the script takes each alias as its own argument.
+          DOMAIN_ALIASES: ${{ env.DOMAIN_ALIASES }}
+          SUDO_PASS: ${{ secrets.VPS_PASSWORD }}

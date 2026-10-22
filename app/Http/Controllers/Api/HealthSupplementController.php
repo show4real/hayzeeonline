@@ -168,7 +168,7 @@ class HealthSupplementController extends Controller
 
             // Verify intent with Stripe
             try {
-                Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+                Stripe::setApiKey(config('services.stripe.secret'));
                 $intent = PaymentIntent::retrieve($payment['reference']);
             } catch (\Exception $e) {
                 return response()->json(['message' => 'Unable to verify Stripe payment', 'error' => $e->getMessage()], 400);
@@ -254,7 +254,7 @@ class HealthSupplementController extends Controller
         $amount = (int) round($total);
 
         try {
-            Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+            Stripe::setApiKey(config('services.stripe.secret'));
 
             $intent = PaymentIntent::create([
                 'amount' => $amount, // cents
@@ -302,7 +302,7 @@ class HealthSupplementController extends Controller
 
     try {
 
-        Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+        Stripe::setApiKey(config('services.stripe.secret'));
 
         /*
         |--------------------------------------------------------------------------
@@ -321,7 +321,7 @@ class HealthSupplementController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $stripe = new StripeClient(env('STRIPE_SECRET_KEY'));
+        $stripe = new StripeClient(config('services.stripe.secret'));
 
         $fundingInstructions = $stripe->customers->createFundingInstructions(
             $customer->id,

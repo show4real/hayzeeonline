@@ -1,8 +1,59 @@
+# Build context is the repository root, which is also the Laravel app root.
+# Docker only reads .dockerignore from the context root.
+
 .git
-.idea
-.vscode
-node_modules
-vendor
-storage/logs/*.log
-hayzeeonline-api.zip
+.github
+.gitignore
+*.md
+
+# Never ship secrets or host state into an image.
+.env
+.env.*
+!.env.example
+
+# Installed fresh inside the image from composer.lock.
+vendor/
+node_modules/
+
+# Cached manifests from the dev environment list dev-only providers (Pail,
+# Sail) and make package:discover fail in a --no-dev build.
+bootstrap/cache/*.php
+
+# Runtime state belongs on a volume, not in the image.
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/public/*
+public/storage
+
+# Product photos live on volumes in production. Baking the local copies in
+# would add hundreds of megabytes to every image and then be shadowed by the
+# volume mount anyway.
+public/images/*
+public/detailedproducts/*
+public/insurance/*
+public/client_consents/*
+public/health_supplements/*
+public/quick_forms/*
+
+# The local development stack has no business in a production image.
+docker-compose.local.yml
+docker-compose.local.yml.example
+docker-compose.override.yml
+docker/local/
+
+# Not part of the deployed application.
+tests/
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
 *.sql
+*.zip
+*.exe
+**/.DS_Store
+
+# Postman collections, API notes and the like.
+*.postman_collection.json
+*.postman_environment.json
+docs/

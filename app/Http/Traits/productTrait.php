@@ -2,13 +2,12 @@
 
 namespace App\Http\Traits;
 
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Laravel\Facades\Image;
 use App\Models\Product;
 use App\Models\ProductDescription;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use App\Models\ProductImages;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 
 
@@ -22,8 +21,10 @@ trait productTrait
         $directory = public_path('images');
         File::ensureDirectoryExists($directory);
 
-        $compressedImage = Image::make($image);
-        $compressedImage->rotate(-$rotation)->save($directory . '/' . $imageName, 80);
+        // Image v3: read() replaces make(), and save() takes the JPEG
+        // quality as a named option rather than a positional argument.
+        $compressedImage = Image::read($image);
+        $compressedImage->rotate(-$rotation)->save($directory . '/' . $imageName, quality: 80);
 
         return response()->json(['message' => 'Image uploaded and compressed successfully']);
     }
@@ -37,9 +38,9 @@ trait productTrait
 
             $rotation =  $rotations[$index];
             $imageName = time() . $image->getClientOriginalName();
-            $compressedImage = Image::make($image);
+            $compressedImage = Image::read($image);
 
-            $compressedImage->rotate(-$rotation)->save($directory . '/' . $imageName, 80);
+            $compressedImage->rotate(-$rotation)->save($directory . '/' . $imageName, quality: 80);
 
             ProductImages::create([
                 'url' => URL::asset('detailedproducts/' . $imageName),
@@ -137,36 +138,79 @@ trait productTrait
         }
     }
 
+    /**
+     * Resolve the on-disk path of an upload from the absolute URL stored for it.
+     *
+     * The stored URL comes from URL::asset(), which builds on the host of the
+     * request that did the upload. With more than one hostname pointing at this
+     * API (api. and apiv2.) that host varies per row, so the filename cannot be
+     * recovered by stripping a fixed prefix — which is what this used to do,
+     * against a hardcoded 'https://hayzeeonline.com/...' that matched no stored
+     * URL at all. Nothing was ever deleted and the files accumulated.
+     *
+     * Reads the path component only, so the host is irrelevant. Returns null
+     * when the URL does not point into the expected directory, which keeps a
+     * stored S3/CDN URL — or a traversal attempt — from resolving to a path.
+     *
+     * @param  string|null  $url
+     * @param  string  $directory  e.g. 'images'
+     * @return string|null absolute path, or null if it is not ours to delete
+     */
+    private function uploadPathFromUrl($url, $directory)
+    {
+        if (! is_string($url) || $url === '') {
+            return null;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if (! is_string($path) || ! str_starts_with($path, '/' . $directory . '/')) {
+            return null;
+        }
+
+        // basename() after the prefix check, so "/images/../../.env" cannot
+        // escape the directory.
+        $name = basename($path);
+
+        if ($name === '' || $name === '.' || $name === '..') {
+            return null;
+        }
+
+        return public_path($directory . '/' . $name);
+    }
+
     private function deletePreviousFile($product_id)
     {
         $detailed_images = ProductImages::where('product_id', $product_id)->pluck('url');
         $single_image = Product::where('id', $product_id)->first()->image;
 
-        $single_image_name = str_replace('https://hayzeeonline.com/images/', '', $single_image);
+        $single_imagepath = $this->uploadPathFromUrl($single_image, 'images');
 
-
-        $single_imagepath = public_path('images/' . $single_image_name);
-        File::delete($single_imagepath);
-
-        foreach ($detailed_images as $detailed_image) {
-            $image_name = str_replace('https://hayzeeonline.com/detailedproducts/', '', $detailed_image);
-            $filePath = public_path('detailedproducts/' . $image_name);
-            File::delete($filePath);
+        if ($single_imagepath !== null && File::exists($single_imagepath)) {
+            File::delete($single_imagepath);
         }
 
+        foreach ($detailed_images as $detailed_image) {
+            $filePath = $this->uploadPathFromUrl($detailed_image, 'detailedproducts');
 
+            if ($filePath !== null && File::exists($filePath)) {
+                File::delete($filePath);
+            }
+        }
 
         ProductImages::where('product_id', $product_id)->delete();
     }
 
-
     public function deleteImage($image)
     {
+        // Deliberately File::delete on public_path, not Storage::disk('public').
+        // The public disk is storage/app/public, but singleUpload() writes to
+        // public_path('images') — so this deleted a path that never existed and
+        // reported success.
+        $path = $this->uploadPathFromUrl($image, 'images');
 
-        $baseUrl = 'https://hayzeeonline.com/images/';
-
-        $single_image_name = str_replace($baseUrl, '', $image);
-
-        Storage::disk('public')->delete('images/' . $single_image_name);
+        if ($path !== null && File::exists($path)) {
+            File::delete($path);
+        }
     }
 }

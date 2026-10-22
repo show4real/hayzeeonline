@@ -1,0 +1,47 @@
+# Apache reverse-proxy vhost template for one stack.
+#
+# __DOMAIN__ and __PORT__ are substituted by docker/provision-apache.sh:
+#
+#   production  api.hayzeeonline.com -> 127.0.0.1:8096
+#
+# Only the :80 vhost is declared here, on purpose. `certbot --apache` copies it
+# to <name>-le-ssl.conf, adds the certificate directives and turns this one
+# into a redirect. Shipping our own :443 block as well would leave two
+# VirtualHosts claiming the same ServerName, and Apache would silently serve
+# whichever it parsed first.
+
+<VirtualHost *:80>
+    ServerName __DOMAIN__
+    # Extra hostnames for the same stack, substituted by provision-apache.sh
+    # from the DOMAIN_ALIASES value in the workflow. The line is removed when
+    # there are none. One vhost with aliases rather than a vhost per name, so
+    # there is one place to change and one certificate to renew.
+    __SERVER_ALIAS__
+
+    # Pass the browser's Host through, so Laravel builds URLs for the real
+    # domain rather than for 127.0.0.1. This matters more here than usual:
+    # productTrait stores absolute image URLs built with URL::asset(), so a
+    # wrong host is written into the database and served to every client.
+    ProxyPreserveHost On
+
+    # mod_proxy_http sets X-Forwarded-For and X-Forwarded-Host on its own, but
+    # NOT X-Forwarded-Proto. Without it Laravel believes the request arrived
+    # over plain http: it builds http:// links on an https:// site, stores
+    # http:// URLs for uploaded product images, and marks secure cookies
+    # insecure.
+    #
+    # Read from the request rather than hard-coded to "https", so it stays
+    # truthful both here and in the :443 copy certbot generates.
+    RequestHeader set X-Forwarded-Proto expr=%{REQUEST_SCHEME}
+    RequestHeader set X-Forwarded-Port  expr=%{SERVER_PORT}
+
+    # The stack listens on loopback only; this is the sole way in.
+    ProxyPass        / http://127.0.0.1:__PORT__/
+    ProxyPassReverse / http://127.0.0.1:__PORT__/
+
+    # Long enough for a multi-image product upload to finish.
+    ProxyTimeout 120
+
+    ErrorLog  ${APACHE_LOG_DIR}/__DOMAIN__-error.log
+    CustomLog ${APACHE_LOG_DIR}/__DOMAIN__-access.log combined
+</VirtualHost>

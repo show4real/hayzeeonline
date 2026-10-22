@@ -1,0 +1,167 @@
+# Production stack for the VPS.
+#
+# The database is external and reached through the .env on the server, so there
+# is no db container here. TLS is terminated by the Apache reverse proxy
+# already on the box; this stack publishes one port, bound to localhost, for
+# that proxy to forward to.
+#
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Images are built by CI and pulled by tag — nothing is built on the server.
+# The local development stack is a separate file (docker-compose.local.yml);
+# the two share no names, so they can both exist on one machine.
+
+x-app: &app
+  image: ${APP_IMAGE:?set APP_IMAGE, e.g. ghcr.io/show4real/hayzeeonline-app:latest}
+  restart: unless-stopped
+  env_file: [.env]
+  depends_on:
+    redis:
+      condition: service_healthy
+  volumes:
+    # Uploads and logs are the only state the app owns; everything else lives
+    # in the image and is replaced wholesale on deploy.
+    #
+    # All six upload directories sit INSIDE the web root, because the
+    # controllers write them with ->move(public_path(...)) rather than to a
+    # Laravel disk. Every one of them has to be a volume: the web root is part
+    # of the image, so anything left there is destroyed by the next release.
+    # That includes insurance ID documents and consent signatures, which are
+    # KYC records and not reproducible.
+    #
+    # If you add another public_path() upload target, add a volume here, in
+    # the nginx service, and in docker/php/{Dockerfile,entrypoint.sh}.
+    - uploads:/var/www/storage/app/public
+    - logs:/var/www/storage/logs
+    - product_images:/var/www/public/images
+    - product_detailed:/var/www/public/detailedproducts
+    - insurance:/var/www/public/insurance
+    - client_consents:/var/www/public/client_consents
+    - health_supplements:/var/www/public/health_supplements
+    - quick_forms:/var/www/public/quick_forms
+  networks: [internal]
+  # Lets DB_HOST=host.docker.internal reach a database listening on the VPS
+  # itself. Harmless when the database is on another host.
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  logging: &logging
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+
+services:
+  app:
+    <<: *app
+    container_name: ${STACK_NAME:-hayzeeonline}_app
+    environment:
+      CONTAINER_ROLE: app
+    # php-fpm is only ever reached by nginx over the internal network.
+    expose: ["9000"]
+
+  nginx:
+    image: ${NGINX_IMAGE:?set NGINX_IMAGE, e.g. ghcr.io/show4real/hayzeeonline-nginx:latest}
+    container_name: ${STACK_NAME:-hayzeeonline}_nginx
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_started
+    ports:
+      # Bound to localhost: only the reverse proxy on this host can reach it.
+      - "127.0.0.1:${APP_PORT:-8096}:80"
+    volumes:
+      # Read-only: nginx serves the uploads, the app writes them. The same six
+      # directories as the app, or a stored URL built with URL::asset() 404s.
+      - uploads:/var/www/storage/app/public:ro
+      - product_images:/var/www/public/images:ro
+      - product_detailed:/var/www/public/detailedproducts:ro
+      - insurance:/var/www/public/insurance:ro
+      - client_consents:/var/www/public/client_consents:ro
+      - health_supplements:/var/www/public/health_supplements:ro
+      - quick_forms:/var/www/public/quick_forms:ro
+    networks: [internal]
+    logging: *logging
+
+  # Background jobs — the verification, approval and cart mails this API
+  # dispatches. --max-time recycles the worker every hour so a leak or a stale
+  # container image cannot linger; restart: unless-stopped brings it back.
+  queue:
+    <<: *app
+    container_name: ${STACK_NAME:-hayzeeonline}_queue
+    environment:
+      CONTAINER_ROLE: queue
+    command: php artisan queue:work --queue=default --tries=3 --backoff=10 --max-time=3600 --sleep=3
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "sh", "-c", "pgrep -f 'queue:work' >/dev/null || exit 1"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+
+  # Laravel's scheduler. schedule:work is the long-running equivalent of the
+  # one-minute cron entry, which keeps cron out of the image entirely. This is
+  # what keeps the Meilisearch product index in step (routes/console.php).
+  scheduler:
+    <<: *app
+    container_name: ${STACK_NAME:-hayzeeonline}_scheduler
+    environment:
+      CONTAINER_ROLE: scheduler
+    command: php artisan schedule:work
+    stop_grace_period: 60s
+    # The image's own healthcheck pings php-fpm, which does not run here —
+    # without this override the container would sit permanently unhealthy.
+    healthcheck:
+      test: ["CMD", "sh", "-c", "pgrep -f 'schedule:work' >/dev/null || exit 1"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${STACK_NAME:-hayzeeonline}_redis
+    restart: unless-stopped
+    # Cache and sessions can be rebuilt, but queued jobs cannot — persist so a
+    # restart does not drop a verification mail that was already accepted.
+    #
+    # volatile-lru evicts only keys that carry a TTL. Cache entries do; queued
+    # jobs and sessions-in-flight do not, so a full cache never costs a job.
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory ${REDIS_MAXMEMORY:-256mb}
+      --maxmemory-policy volatile-lru
+      --save 60 1000
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks: [internal]
+    logging: *logging
+
+# Names carry STACK_NAME so a production and a test stack can sit on the same
+# host without sharing uploads, logs, redis or a network.
+volumes:
+  uploads:
+    name: ${STACK_NAME:-hayzeeonline}_uploads
+  logs:
+    name: ${STACK_NAME:-hayzeeonline}_logs
+  product_images:
+    name: ${STACK_NAME:-hayzeeonline}_product_images
+  product_detailed:
+    name: ${STACK_NAME:-hayzeeonline}_product_detailed
+  insurance:
+    name: ${STACK_NAME:-hayzeeonline}_insurance
+  client_consents:
+    name: ${STACK_NAME:-hayzeeonline}_client_consents
+  health_supplements:
+    name: ${STACK_NAME:-hayzeeonline}_health_supplements
+  quick_forms:
+    name: ${STACK_NAME:-hayzeeonline}_quick_forms
+  redis:
+    name: ${STACK_NAME:-hayzeeonline}_redis
+
+networks:
+  internal:
+    name: ${STACK_NAME:-hayzeeonline}_net

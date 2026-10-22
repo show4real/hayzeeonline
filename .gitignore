@@ -2,14 +2,54 @@
 /public/hot
 /public/storage
 /storage/*.key
+/storage/pail
 /vendor
 .env
 .env.backup
+.env.production
+.phpunit.cache
 .phpunit.result.cache
-docker-compose.override.yml
 Homestead.json
 Homestead.yaml
+auth.json
 npm-debug.log
 yarn-error.log
+/.fleet
 /.idea
 /.vscode
+.DS_Store
+
+# Runtime uploads. These controllers write into the web root with
+# ->move(public_path(...)) rather than to a Laravel disk, so without this
+# every upload — including the ones the test suite makes, because
+# Storage::fake() cannot intercept a real move() — shows up as an untracked
+# file. In production these are Docker volumes, not part of the image.
+/public/images/*
+/public/detailedproducts/*
+/public/insurance/*
+/public/client_consents/*
+/public/health_supplements/*
+/public/quick_forms/*
+!/public/images/.gitkeep
+!/public/detailedproducts/.gitkeep
+!/public/insurance/.gitkeep
+!/public/client_consents/.gitkeep
+!/public/health_supplements/.gitkeep
+!/public/quick_forms/.gitkeep
+
+# ---------------------------------------------------------------------------
+# Local Docker stack
+# ---------------------------------------------------------------------------
+# The local stack is deliberately NOT tracked: ports, and anything else you
+# change to make it sit alongside your other projects, are yours alone.
+# docker-compose.local.yml.example is the committed copy — start from it:
+#
+#   cp docker-compose.local.yml.example docker-compose.local.yml
+#
+# docker-compose.prod.yml and docker/ ARE tracked; CI builds and deploys them.
+/docker-compose.local.yml
+/docker-compose.override.yml
+/docker/local/*.local.*
+
+# Editor/LSP scratch files that land in the framework cache.
+/storage/framework/lsp-*.php

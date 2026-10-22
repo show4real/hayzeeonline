@@ -1,0 +1,177 @@
+# LOCAL DEVELOPMENT STACK — gitignored on purpose.
+#
+# Production is docker-compose.prod.yml, whose images are built by CI and
+# pulled by tag. Nothing here is ever deployed: this file bind-mounts the
+# working tree, runs the dev dependencies, and publishes ports to the host.
+#
+#   docker compose -f docker-compose.local.yml up -d --build
+#   docker compose -f docker-compose.local.yml exec php php artisan migrate
+#   docker compose -f docker-compose.local.yml down
+#
+# This file is gitignored, so it is yours to edit. docker-compose.local.yml.example
+# is the committed copy — update that one if a change should reach everybody.
+#
+# ---------------------------------------------------------------------------
+# Sharing one Docker host with other projects
+# ---------------------------------------------------------------------------
+# Every published port is overridable, and every container, volume and network
+# is named explicitly rather than derived from the directory. So nothing here
+# collides with the inventory stack (which holds 8085, 3310, 8026, 3701) or
+# with anything else already running.
+#
+# If a port is taken, override it without editing this file:
+#
+#   NGINX_PORT=9090 docker compose -f docker-compose.local.yml up -d
+#
+# …or put the value in .env, which compose reads automatically.
+
+name: hayzeeonline-local
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/local/Dockerfile
+      args:
+        # Files the container writes land on the bind mount with these ids.
+        # `UID=$(id -u) GID=$(id -g) docker compose ... build` on Linux;
+        # Docker Desktop on macOS maps ownership itself, so the defaults are
+        # fine there.
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: hayzeeonline-local-php
+    container_name: hayzeeonline_local_php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    # Inside the container MySQL and Redis are reached by service name. These
+    # real env vars beat .env, which points at the published host ports so the
+    # IDE and a host-side `php artisan` keep working too.
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks: [hayzee_local]
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: hayzeeonline_local_nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-8086}:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/local/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks: [hayzee_local]
+
+  mysql:
+    image: mysql:8.0
+    container_name: hayzeeonline_local_mysql
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT_HOST:-3312}:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-hayzee_pos}
+      MYSQL_USER: ${DB_USERNAME:-hayzee}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Loaded only when the data directory is empty, i.e. on a fresh volume.
+      - ./hayzee_pos.sql:/docker-entrypoint-initdb.d/01-hayzee_pos.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [hayzee_local]
+
+  redis:
+    image: redis:7-alpine
+    container_name: hayzeeonline_local_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT_HOST:-6381}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks: [hayzee_local]
+
+  # Local mail catcher. The verification, approval and cart mails this API
+  # sends all land here instead of going anywhere real — open the UI at
+  # http://localhost:8027.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: hayzeeonline_local_mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT:-8027}:8025"
+    networks: [hayzee_local]
+
+  # Mail is dispatched as queued jobs, so without a worker nothing is ever
+  # sent and the rows just accumulate in the `jobs` table.
+  queue:
+    build:
+      context: .
+      dockerfile: docker/local/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: hayzeeonline-local-php
+    container_name: hayzeeonline_local_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work --queue=default --sleep=3 --tries=3 --max-time=3600
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    networks: [hayzee_local]
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: hayzeeonline_local_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PMA_PORT:-3703}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 256M
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks: [hayzee_local]
+
+networks:
+  hayzee_local:
+    name: hayzeeonline_local_net
+
+volumes:
+  mysql_data:
+    # Named to match what the previous docker-compose.yml created, so the
+    # database you already have locally is still here after this change.
+    name: hayzeeonline_mysql_data
